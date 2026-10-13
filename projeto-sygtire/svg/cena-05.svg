@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Cena 05 — CPK · 11.05 s → 14.10 s (frames 663 → 846 a 60 fps)
+  Camada transparente sobre o fundo fixo. Placeholder: a arte será criada no próximo lote.
+  Todo o conteúdo (inclusive <defs>) deve ficar DENTRO do grupo abaixo; é ele que o
+  master.js importa para o grupo de mesmo id no documento principal.
+  Nunca inclua aqui a fotografia de fundo nem elementos com id="background-fixed".
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="1672" height="941" viewBox="0 0 1672 941">
+  <g id="scene-05-cpk"></g>
+</svg>

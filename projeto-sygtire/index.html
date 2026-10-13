@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SygTire · Pré-visualização</title>
+<script>
+  // index.html?render → somente o palco em 1672 × 941, sem interface, para captura a 60 fps.
+  if (/[?&]render(=|&|$)/.test(location.search)) document.documentElement.classList.add('render');
+</script>
+<style>
+  :root {
+    --bg: #0d1014;
+    --panel: #151a21;
+    --line: #273040;
+    --text: #e7ecf2;
+    --muted: #8a96a6;
+    --blue: #2f8fea;
+    --green: #7cbc4a;
+    --red: #ff6b6b;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  button { font: inherit; }
+
+  .app { max-width: 1704px; margin: 0 auto; padding: 16px; display: grid; gap: 12px; }
+
+  header { display: flex; align-items: baseline; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; }
+  h1 { margin: 0; font-size: 15px; font-weight: 600; }
+  h1 span { color: var(--muted); font-weight: 400; }
+  .status { font-size: 12px; color: var(--muted); }
+  .status.ok::before { content: "●"; color: var(--green); margin-right: 6px; }
+  .status.error { color: var(--red); white-space: pre-line; }
+
+  /* O palco só define o tamanho de exibição; o SVG e a fotografia não recebem estilo visual. */
+  .viewport { overflow: auto; border-radius: 6px; }
+  .stage {
+    width: min(100%, 1672px, max(400px, calc((100vh - 240px) * 1672 / 941)));
+    aspect-ratio: 1672 / 941;
+    margin: 0 auto;
+  }
+  .stage svg { display: block; width: 100%; height: 100%; }
+  .viewport.native .stage { width: 1672px; }
+
+  .transport { display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap; }
+  .buttons { display: flex; gap: 6px; flex-wrap: wrap; }
+  .buttons button {
+    min-width: 44px; height: 36px; padding: 0 14px;
+    color: var(--text); background: var(--panel);
+    border: 1px solid var(--line); border-radius: 6px; cursor: pointer;
+  }
+  .buttons button:hover:not(:disabled) { border-color: var(--blue); }
+  .buttons button:disabled { opacity: .45; cursor: default; }
+  .buttons button.primary { min-width: 104px; background: var(--blue); border-color: var(--blue); font-weight: 600; }
+  .buttons button[aria-pressed="true"] { border-color: var(--green); color: var(--green); }
+  .readout { font-variant-numeric: tabular-nums; color: var(--muted); }
+  .readout strong { color: var(--text); font-weight: 600; }
+
+  #scrubber { width: 100%; margin: 0; accent-color: var(--blue); cursor: pointer; }
+
+  .track { display: flex; gap: 2px; padding: 0 8px; }
+  .track button {
+    flex: var(--slot) 1 0; min-width: 0; padding: 6px 6px 4px; text-align: left;
+    color: var(--muted); background: var(--panel); border: 0; border-top: 3px solid var(--line);
+    cursor: pointer; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 12px;
+  }
+  .track button:nth-child(odd) { border-top-color: #31404f; }
+  .track button.active { color: var(--text); border-top-color: var(--blue); }
+  .track small { display: block; font-variant-numeric: tabular-nums; opacity: .8; }
+
+  .hint { margin: 0; font-size: 12px; color: var(--muted); }
+
+  /* Modo de renderização: pixels nativos, sem interface. */
+  .render body { background: #000; }
+  .render .app { max-width: none; padding: 0; display: block; }
+  .render .chrome { display: none; }
+  .render .viewport { border-radius: 0; overflow: hidden; }
+  .render .stage { width: 1672px; height: 941px; margin: 0; }
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="chrome">
+    <h1>SygTire — Animação institucional <span>· Pré-visualização · Etapa 1: fundo fixo</span></h1>
+    <div id="status" class="status" role="status">Carregando fundo…</div>
+  </header>
+
+  <div id="viewport" class="viewport">
+    <div class="stage">
+      <!--
+        SVG principal — espelho de svg/fundo.svg (mantenha os dois iguais).
+        Camada inferior: fotografia original, intocável. Acima: sete grupos de cena.
+      -->
+      <svg id="sygtire-master" xmlns="http://www.w3.org/2000/svg"
+           width="1672" height="941" viewBox="0 0 1672 941">
+        <image id="background-fixed" x="0" y="0" width="1672" height="941"
+               preserveAspectRatio="xMidYMid meet" href="assets/fundo-original.png"/>
+
+        <g id="scene-01-abertura"></g>
+        <g id="scene-02-afericao"></g>
+        <g id="scene-03-alertas"></g>
+        <g id="scene-04-acao"></g>
+        <g id="scene-05-cpk"></g>
+        <g id="scene-06-integracao"></g>
+        <g id="scene-07-encerramento"></g>
+      </svg>
+    </div>
+  </div>
+
+  <section class="chrome transport" aria-label="Controles da timeline">
+    <div class="buttons">
+      <button id="btn-play" class="primary" type="button" disabled>▶&#xFE0E; Play</button>
+      <button id="btn-restart" type="button" disabled>↺ Reiniciar</button>
+      <button id="btn-prev" type="button" title="Frame anterior (←)" aria-label="Frame anterior" disabled>◀&#xFE0E; 1f</button>
+      <button id="btn-next" type="button" title="Próximo frame (→)" aria-label="Próximo frame" disabled>1f ▶&#xFE0E;</button>
+      <button id="btn-zoom" type="button" aria-pressed="false" title="Exibir a imagem em pixels nativos (1672 × 941)">100%</button>
+    </div>
+    <div class="readout">
+      <strong id="time">0.00 s</strong> / 20.00 s ·
+      <strong id="frame">F 0000</strong> / 1200 @ 60 fps ·
+      <strong id="scene">Cena 01 · Abertura</strong>
+    </div>
+  </section>
+
+  <input id="scrubber" class="chrome" type="range" min="0" max="1200" step="1" value="0"
+         aria-label="Navegação temporal em frames" disabled>
+  <nav id="scene-track" class="chrome track" aria-label="Cenas"></nav>
+
+  <p class="chrome hint">Espaço: play/pause · ←/→: 1 frame · Shift + ←/→: 1 s · Home: início · 1–7: início da cena</p>
+</main>
+
+<script src="animations/vendor/gsap.min.js"></script>
+<script src="animations/master.js"></script>
+<script src="animations/cena-01.js"></script>
+<script src="animations/cena-02.js"></script>
+<script src="animations/cena-03.js"></script>
+<script src="animations/cena-04.js"></script>
+<script src="animations/cena-05.js"></script>
+<script src="animations/cena-06.js"></script>
+<script src="animations/cena-07.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var S = window.SygTire;
+  var $ = function (id) { return document.getElementById(id); };
+  var status = $('status');
+  var scrubber = $('scrubber');
+  var btnPlay = $('btn-play');
+  var segments = [];
+
+  function pad(n, size) { n = String(n); while (n.length < size) n = '0' + n; return n; }
+
+  S.SCENES.forEach(function (scene) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.style.setProperty('--slot', (scene.end - scene.start).toFixed(2));
+    b.title = 'Cena ' + pad(scene.number, 2) + ' · ' + scene.title + ' (' + scene.start.toFixed(2) + ' s → ' + scene.end.toFixed(2) + ' s)';
+    b.innerHTML = pad(scene.number, 2) + ' ' + scene.title +
+      '<small>' + scene.start.toFixed(2) + '–' + scene.end.toFixed(2) + ' s</small>';
+    b.addEventListener('click', function () { S.pause(); S.seekScene(scene.number); });
+    $('scene-track').appendChild(b);
+    segments.push(b);
+  });
+
+  S.onUpdate(function (state) {
+    $('time').textContent = state.time.toFixed(2) + ' s';
+    $('frame').textContent = 'F ' + pad(state.frame, 4);
+    $('scene').textContent = 'Cena ' + pad(state.scene.number, 2) + ' · ' + state.scene.title;
+    btnPlay.innerHTML = state.playing ? '❚❚ Pause' : '▶&#xFE0E; Play';
+    if (+scrubber.value !== state.frame) scrubber.value = state.frame;
+    segments.forEach(function (b, i) { b.classList.toggle('active', S.SCENES[i] === state.scene); });
+  });
+
+  function stepFrames(delta) {
+    S.pause();
+    S.seekFrame(S.getState().frame + delta);
+  }
+
+  btnPlay.addEventListener('click', function () { S.togglePlay(); this.blur(); });
+  $('btn-restart').addEventListener('click', function () { S.restart(); this.blur(); });
+  $('btn-prev').addEventListener('click', function () { stepFrames(-1); });
+  $('btn-next').addEventListener('click', function () { stepFrames(1); });
+  $('btn-zoom').addEventListener('click', function () {
+    var on = $('viewport').classList.toggle('native');
+    this.setAttribute('aria-pressed', String(on));
+  });
+  scrubber.addEventListener('input', function () {
+    var frame = +scrubber.value; // ler antes de pausar: pause() atualiza o slider
+    S.pause();
+    S.seekFrame(frame);
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (!S.timeline || e.altKey || e.ctrlKey || e.metaKey) return;
+    if (e.target === scrubber && !e.shiftKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) return; // o slider já anda 1 frame
+    if (e.key === ' ') { e.preventDefault(); S.togglePlay(); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); stepFrames(e.shiftKey ? -S.FPS : -1); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); stepFrames(e.shiftKey ? S.FPS : 1); }
+    else if (e.key === 'Home') { e.preventDefault(); S.pause(); S.seek(0); }
+    else if (/^[1-7]$/.test(e.key)) { S.pause(); S.seekScene(+e.key); }
+  });
+
+  S.init().then(function () {
+    document.querySelectorAll('button:disabled, input:disabled').forEach(function (el) { el.disabled = false; });
+    status.className = 'status ok';
+    status.textContent = 'Fundo original verificado · ' + S.render.width + ' × ' + S.render.height +
+      ' · sem transformações · timeline de ' + S.timeline.duration().toFixed(2) + ' s';
+  }).catch(function (err) {
+    status.className = 'status error';
+    status.textContent = err.message;
+    console.error(err);
+  });
+})();
+</script>
+</body>
+</html>

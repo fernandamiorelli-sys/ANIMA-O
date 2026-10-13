@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  SygTire — documento SVG principal (1672 × 941, mesmas dimensões nativas da fotografia).
+
+  Camada inferior: #background-fixed — fotografia original em raster, referenciada sem
+  nenhuma transformação, opacidade, filtro ou recorte. Este elemento NUNCA é animado.
+  Camadas superiores: sete grupos de cena, transparentes, preenchidos a partir de svg/cena-XX.svg.
+
+  index.html contém uma cópia inline desta mesma marcação (necessária para o GSAP):
+  qualquer mudança aqui deve ser replicada lá.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="1672" height="941" viewBox="0 0 1672 941">
+  <image id="background-fixed" x="0" y="0" width="1672" height="941"
+         preserveAspectRatio="xMidYMid meet"
+         href="../assets/fundo-original.png" xlink:href="../assets/fundo-original.png"/>
+
+  <g id="scene-01-abertura"></g>
+  <g id="scene-02-afericao"></g>
+  <g id="scene-03-alertas"></g>
+  <g id="scene-04-acao"></g>
+  <g id="scene-05-cpk"></g>
+  <g id="scene-06-integracao"></g>
+  <g id="scene-07-encerramento"></g>
+</svg>
