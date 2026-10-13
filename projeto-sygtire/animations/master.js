@@ -6,6 +6,10 @@
  *  - #background-fixed é a fotografia original. Nunca recebe tween, transformação,
  *    opacidade, filtro, recorte ou reposicionamento. assertBackgroundIntact() verifica.
  *  - Cada cena anima apenas o conteúdo do próprio grupo <g id="scene-XX-...">.
+ *  - Nenhuma camada de cena pinta sobre os logotipos da fotografia: os grupos de cena
+ *    recebem o recorte #protecao-logos, que exclui as áreas de LOGO_ZONES.
+ *  - Cada grupo de cena só fica visível dentro do próprio intervalo, então uma cena
+ *    nunca invade o quadro da seguinte.
  *  - SCENES é a única fonte de verdade dos intervalos das cenas.
  *
  * Ordem de carregamento: vendor/gsap.min.js → master.js → cena-01.js … cena-07.js → SygTire.init()
@@ -18,6 +22,13 @@
   var TOTAL_FRAMES = Math.round(DURATION * FPS); // 1200
   var BACKGROUND_ID = 'background-fixed';
   var MASTER_SVG_ID = 'sygtire-master';
+  var LOGO_CLIP_ID = 'protecao-logos';
+
+  // Logotipos da fotografia original (medidos em fundo-original.png, com 2–4 px de folga).
+  var LOGO_ZONES = [
+    { name: 'iSat',    x: 60,   y: 799, width: 115, height: 68 },
+    { name: 'SygTire', x: 1436, y: 36,  width: 186, height: 90 }
+  ];
 
   // Intervalos reservados, em segundos. Todos caem em frames inteiros a 60 fps.
   var SCENES = [
@@ -35,6 +46,7 @@
   var svg = null;
   var background = null;
   var master = null;
+  var loopEnd = null;
 
   function pad2(n) { return (n < 10 ? '0' : '') + n; }
   function labelOf(scene) { return 'cena-' + pad2(scene.number); }
@@ -91,6 +103,42 @@
     }));
   }
 
+  // Recorte compartilhado: o quadro inteiro menos as áreas dos logotipos (regra evenodd).
+  function protectLogos() {
+    var NS = 'http://www.w3.org/2000/svg';
+    var vb = svg.viewBox.baseVal;
+    var d = 'M0 0H' + vb.width + 'V' + vb.height + 'H0Z';
+    LOGO_ZONES.forEach(function (z) {
+      d += ' M' + z.x + ' ' + z.y + 'h' + z.width + 'v' + z.height + 'h' + (-z.width) + 'Z';
+    });
+    var defs = document.createElementNS(NS, 'defs');
+    var clip = document.createElementNS(NS, 'clipPath');
+    var path = document.createElementNS(NS, 'path');
+    clip.setAttribute('id', LOGO_CLIP_ID);
+    clip.setAttribute('clipPathUnits', 'userSpaceOnUse');
+    path.setAttribute('d', d);
+    path.setAttribute('clip-rule', 'evenodd');
+    clip.appendChild(path);
+    defs.appendChild(clip);
+    svg.appendChild(defs);
+    SCENES.forEach(function (scene) {
+      document.getElementById(scene.id).setAttribute('clip-path', 'url(#' + LOGO_CLIP_ID + ')');
+    });
+  }
+
+  // Carrega todas as faces declaradas em assets/fonts/fonts.css antes de montar a timeline,
+  // para que nenhum frame seja renderizado com fonte substituta.
+  function waitForFonts() {
+    if (!document.fonts) return Promise.resolve();
+    var loads = [];
+    document.fonts.forEach(function (face) {
+      loads.push(face.load().catch(function () {
+        console.warn('[SygTire] Fonte não carregada: ' + face.family + ' ' + face.weight);
+      }));
+    });
+    return Promise.all(loads).then(function () { return document.fonts.ready; });
+  }
+
   /* --------------------------------------------------------------- timeline */
 
   function buildTimeline() {
@@ -100,8 +148,10 @@
       var slot = scene.end - scene.start;
       var sceneTl = gsap.timeline();
       var build = registry[scene.id];
+      var group = document.getElementById(scene.id);
 
-      if (build) build(sceneTl, document.getElementById(scene.id), scene);
+      // Sem arte importada (ex.: página aberta via file://) a cena fica vazia e não é montada.
+      if (build && group.firstElementChild) build(sceneTl, group, scene);
       if (sceneTl.duration() > slot + 1e-6) {
         console.warn('[SygTire] ' + labelOf(scene) + ' dura ' + sceneTl.duration().toFixed(3) +
           ' s e ultrapassa o intervalo reservado de ' + slot.toFixed(2) + ' s.');
@@ -159,6 +209,13 @@
       if (global.gsap && (gsap.getTweensOf(bg).length || gsap.getTweensOf(svg).length)) {
         problems.push('existe tween GSAP aplicado ao fundo ou ao SVG principal');
       }
+
+      SCENES.forEach(function (scene) {
+        var group = document.getElementById(scene.id);
+        if (!group || group.getAttribute('clip-path') !== 'url(#' + LOGO_CLIP_ID + ')') {
+          problems.push(scene.id + ' sem o recorte de proteção dos logotipos');
+        }
+      });
     }
 
     if (problems.length) {
@@ -193,9 +250,27 @@
     };
   }
 
+  // Cada grupo de cena só aparece dentro do próprio intervalo [start, end).
+  function updateSceneVisibility(time) {
+    SCENES.forEach(function (scene) {
+      var visible = time >= scene.start - 1e-6 && time < scene.end - 1e-6;
+      document.getElementById(scene.id).style.visibility = visible ? 'visible' : 'hidden';
+    });
+  }
+
   function emit() {
+    if (loopEnd !== null && master && master.isActive() && master.time() >= loopEnd - 1e-6) {
+      master.seek(0, false);
+    }
     var state = getState();
+    updateSceneVisibility(state.time);
     listeners.forEach(function (fn) { fn(state); });
+  }
+
+  // Prévia parcial: durante a reprodução, volta a 0 ao atingir `seconds` (null desliga).
+  // Não afeta a renderização quadro a quadro.
+  function setPreviewLoop(seconds) {
+    loopEnd = seconds === null ? null : clamp(seconds, 1 / FPS, DURATION);
   }
 
   function onUpdate(fn) { listeners.push(fn); }
@@ -266,8 +341,10 @@
     render.height = svg.viewBox.baseVal.height;
     gsap.ticker.fps(FPS);
 
+    protectLogos();
     api.ready = waitForBackground()
       .then(loadSceneArt)
+      .then(waitForFonts)
       .then(function () {
         master = buildTimeline();
         api.timeline = master;
@@ -296,6 +373,8 @@
     seekScene: seekScene,
     getState: getState,
     onUpdate: onUpdate,
+    setPreviewLoop: setPreviewLoop,
+    LOGO_ZONES: LOGO_ZONES,
     assertBackgroundIntact: assertBackgroundIntact,
     render: render
   };

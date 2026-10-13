@@ -1,6 +1,7 @@
 # SygTire — animação institucional (20 s · 60 fps · 1672 × 941)
 
-Etapa 1: base técnica. Fundo fixo + sete camadas de cena vazias + timeline GSAP.
+- Etapa 1: base técnica. Fundo fixo + sete camadas de cena + timeline GSAP.
+- Etapa 2: cenas 01–04 reconstruídas em SVG vetorial e animadas (0 → 11,05 s).
 
 ## Fundo original — intocável
 
@@ -11,6 +12,19 @@ Etapa 1: base técnica. Fundo fixo + sete camadas de cena vazias + timeline GSAP
   primeiro filho do SVG (camada inferior), sem `transform`, `opacity`, `filter`, `mask`,
   `clip-path` ou `style`. Nenhum tween GSAP pode mirar o fundo nem o `<svg>` raiz.
 - `SygTire.assertBackgroundIntact()` confere tudo isso na inicialização e em cada frame renderizado.
+
+## Logotipos da fotografia — nunca cobertos
+
+O master aplica a todos os grupos de cena o recorte `#protecao-logos` (quadro inteiro menos as
+áreas de `LOGO_ZONES` em `master.js`): iSat em x 62–172, y 801–864 e SygTire em x 1440–1618,
+y 40–121, com folga. Nenhum elemento, sombra ou movimento de cena pinta sobre os logos.
+
+Nas referências 1 e 3 o logo iSat foi desenhado mais abaixo do que está na fotografia, e na
+referência 2 ele aparece por cima do celular. Como o logo não muda, as composições foram ajustadas:
+
+- Cena 01: cards com 98 px de altura e 13 px de intervalo (103 px e 18 px na referência).
+- Cena 02: celular em escala 0,96 com topo em y = 345, esmaecendo antes do logo (y ≈ 799).
+- Cena 03: painel 3 px acima e linhas de alerta com 10 px de intervalo (14 px na referência).
 
 ## Cenas
 
@@ -30,8 +44,19 @@ Os intervalos ficam só em `animations/master.js` (`SCENES`).
   filhos desse grupo para o grupo de mesmo id no SVG principal.
 - Movimento: `animations/cena-XX.js` → `SygTire.registerScene(id, function (tl, group, scene) { … })`.
   `tl` começa em 0 no início da cena; o master a posiciona no intervalo reservado.
+- Cada `svg/cena-XX.svg` é desenhado no estado final da composição (abrir o arquivo mostra a cena
+  montada); as entradas e saídas ficam no `.js`. Elementos animados não têm atributo `transform`
+  (o posicionamento estático fica em um grupo interno). Ao usar `transformOrigin` num `fromTo`,
+  declare-o também no estado inicial: sem isso o *smoothOrigin* do GSAP deixa uma translação residual.
+- Cada grupo de cena só fica visível dentro do próprio intervalo; as saídas terminam no fim dele.
+- Referências: `assets/referencias/cena-XX-referencia.webp`.
 - `svg/fundo.svg` é o SVG principal; `index.html` tem uma cópia inline dele (necessária para o GSAP).
   Mudanças em um devem ir para o outro.
+
+## Fontes
+
+`assets/fonts/` (SIL Open Font License): **Poppins** 400–900 nos títulos e textos em caixa-alta,
+**Figtree** 400–800 nos textos de interface. O master carrega todas antes de montar a timeline.
 
 ## Pré-visualização
 
@@ -39,8 +64,9 @@ Os intervalos ficam só em `animations/master.js` (`SCENES`).
 npx serve projeto-sygtire        # ou: cd projeto-sygtire && python3 -m http.server
 ```
 
-Abrir `index.html`. Pelo `file://` a página funciona, mas as artes de `svg/cena-XX.svg` só são
-carregadas via HTTP. O GSAP 3.13.0 está em `animations/vendor/` (sem dependência de CDN).
+Abrir `index.html`. Pelo `file://` a página abre, mas as artes de `svg/cena-XX.svg` só são
+carregadas via HTTP (a página avisa). "Repetir 0–11,05 s" mantém a reprodução nas cenas 01–04.
+Prévia renderizada: `renders/previa-cenas-01-04.webm` (VP9, 1672 × 941, 60 fps, 663 frames). O GSAP 3.13.0 está em `animations/vendor/` (sem dependência de CDN).
 
 Atalhos: espaço (play/pause), ←/→ (1 frame), Shift + ←/→ (1 s), Home (início), 1–7 (início da cena).
 

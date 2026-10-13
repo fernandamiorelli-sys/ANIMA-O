@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SygTire · Pré-visualização</title>
+<link rel="stylesheet" href="assets/fonts/fonts.css">
 <script>
   // index.html?render → somente o palco em 1672 × 941, sem interface, para captura a 60 fps.
   if (/[?&]render(=|&|$)/.test(location.search)) document.documentElement.classList.add('render');
@@ -36,6 +37,7 @@
   .status { font-size: 12px; color: var(--muted); }
   .status.ok::before { content: "●"; color: var(--green); margin-right: 6px; }
   .status.error { color: var(--red); white-space: pre-line; }
+  .status.warn::before { content: "●"; color: #f0b429; margin-right: 6px; }
 
   /* O palco só define o tamanho de exibição; o SVG e a fotografia não recebem estilo visual. */
   .viewport { overflow: auto; border-radius: 6px; }
@@ -58,6 +60,8 @@
   .buttons button:disabled { opacity: .45; cursor: default; }
   .buttons button.primary { min-width: 104px; background: var(--blue); border-color: var(--blue); font-weight: 600; }
   .buttons button[aria-pressed="true"] { border-color: var(--green); color: var(--green); }
+  .loop { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 10px; color: var(--muted); cursor: pointer; }
+  .loop input { accent-color: var(--blue); margin: 0; }
   .readout { font-variant-numeric: tabular-nums; color: var(--muted); }
   .readout strong { color: var(--text); font-weight: 600; }
 
@@ -86,7 +90,7 @@
 <body>
 <main class="app">
   <header class="chrome">
-    <h1>SygTire — Animação institucional <span>· Pré-visualização · Etapa 1: fundo fixo</span></h1>
+    <h1>SygTire — Animação institucional <span>· Pré-visualização · Cenas 01–04</span></h1>
     <div id="status" class="status" role="status">Carregando fundo…</div>
   </header>
 
@@ -119,6 +123,7 @@
       <button id="btn-prev" type="button" title="Frame anterior (←)" aria-label="Frame anterior" disabled>◀&#xFE0E; 1f</button>
       <button id="btn-next" type="button" title="Próximo frame (→)" aria-label="Próximo frame" disabled>1f ▶&#xFE0E;</button>
       <button id="btn-zoom" type="button" aria-pressed="false" title="Exibir a imagem em pixels nativos (1672 × 941)">100%</button>
+      <label class="loop" title="Durante a reprodução, volta ao início ao fim da cena 04"><input id="chk-loop" type="checkbox" checked> Repetir 0–11,05 s</label>
     </div>
     <div class="readout">
       <strong id="time">0.00 s</strong> / 20.00 s ·
@@ -190,6 +195,11 @@
     var on = $('viewport').classList.toggle('native');
     this.setAttribute('aria-pressed', String(on));
   });
+  var loop = $('chk-loop');
+  function applyLoop() { S.setPreviewLoop(loop.checked ? S.SCENES[3].end : null); }
+  loop.addEventListener('change', function () { applyLoop(); this.blur(); });
+  applyLoop();
+
   scrubber.addEventListener('input', function () {
     var frame = +scrubber.value; // ler antes de pausar: pause() atualiza o slider
     S.pause();
@@ -208,9 +218,15 @@
 
   S.init().then(function () {
     document.querySelectorAll('button:disabled, input:disabled').forEach(function (el) { el.disabled = false; });
-    status.className = 'status ok';
-    status.textContent = 'Fundo original verificado · ' + S.render.width + ' × ' + S.render.height +
+    var info = 'Fundo original verificado · ' + S.render.width + ' × ' + S.render.height +
       ' · sem transformações · timeline de ' + S.timeline.duration().toFixed(2) + ' s';
+    if (location.protocol === 'file:') {
+      status.className = 'status warn';
+      status.textContent = info + ' · aberto direto do disco: as cenas só aparecem via servidor local (npx serve projeto-sygtire)';
+    } else {
+      status.className = 'status ok';
+      status.textContent = info;
+    }
   }).catch(function (err) {
     status.className = 'status error';
     status.textContent = err.message;

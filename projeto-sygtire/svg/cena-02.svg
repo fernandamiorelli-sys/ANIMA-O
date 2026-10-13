@@ -1,11 +1,166 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   Cena 02 — Aferição · 2.55 s → 5.90 s (frames 153 → 354 a 60 fps)
-  Camada transparente sobre o fundo fixo. Placeholder: a arte será criada no próximo lote.
-  Todo o conteúdo (inclusive <defs>) deve ficar DENTRO do grupo abaixo; é ele que o
-  master.js importa para o grupo de mesmo id no documento principal.
-  Nunca inclua aqui a fotografia de fundo nem elementos com id="background-fixed".
+  Referência: assets/referencias/cena-02-referencia.webp
+
+  Camada transparente sobre o fundo fixo, desenhada no estado final da composição
+  (animações em animations/cena-02.js). Todo o conteúdo fica dentro de #scene-02-afericao.
+
+  O celular é desenhado nas coordenadas medidas na referência e posicionado pelo grupo
+  #s2-celular-layout (escala 0,96, topo em y = 345). Na referência o logo iSat aparece por
+  cima do celular; como o logo faz parte da fotografia e não pode ser coberto nem
+  modificado, o aparelho termina (com esmaecimento) logo acima dele, em y ≈ 799.
 -->
 <svg xmlns="http://www.w3.org/2000/svg" width="1672" height="941" viewBox="0 0 1672 941">
-  <g id="scene-02-afericao"></g>
+  <style>@import url("../assets/fonts/fonts.css");</style>
+  <g id="scene-02-afericao">
+    <defs>
+      <linearGradient id="s2-grad-moldura" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#cdd3db"/>
+        <stop offset="0.06" stop-color="#eef1f4"/>
+        <stop offset="0.5" stop-color="#fbfcfd"/>
+        <stop offset="0.94" stop-color="#eceff3"/>
+        <stop offset="1" stop-color="#c8ced7"/>
+      </linearGradient>
+      <linearGradient id="s2-grad-botao" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#2275ea"/>
+        <stop offset="1" stop-color="#0a5fe8"/>
+      </linearGradient>
+      <!-- Esmaecimento da parte inferior do aparelho (coordenadas internas do celular) -->
+      <linearGradient id="s2-grad-mascara" gradientUnits="userSpaceOnUse" x1="0" y1="809" x2="0" y2="820.5">
+        <stop offset="0" stop-color="#ffffff"/>
+        <stop offset="1" stop-color="#000000"/>
+      </linearGradient>
+      <mask id="s2-mascara-aparelho" maskUnits="userSpaceOnUse" x="60" y="300" width="380" height="600">
+        <rect x="60" y="300" width="380" height="600" fill="url(#s2-grad-mascara)"/>
+      </mask>
+      <filter id="s2-sombra-aparelho" x="-20%" y="-10%" width="140%" height="125%" color-interpolation-filters="sRGB">
+        <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#1c3462" flood-opacity="0.12"/>
+      </filter>
+      <filter id="s2-sombra-botao" x="-10%" y="-30%" width="120%" height="180%" color-interpolation-filters="sRGB">
+        <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#0b5fe6" flood-opacity="0.25"/>
+      </filter>
+    </defs>
+
+    <!-- Título -->
+    <g id="s2-titulo" font-family="Poppins" font-weight="800" font-size="69.5">
+      <text id="s2-titulo-linha-1" x="70" y="196" letter-spacing="-1.4" fill="#022c7f">SULCO,</text>
+      <text id="s2-titulo-linha-2" x="71" y="258" letter-spacing="-1.2" fill="#022c7f">PRESSÃO E KM.</text>
+      <text id="s2-titulo-linha-3" x="70" y="319" letter-spacing="0" fill="#0465ef">PNEU A PNEU.</text>
+    </g>
+
+    <!-- Interface: smartphone -->
+    <g id="s2-celular">
+      <g id="s2-celular-layout" transform="translate(247.5 345) scale(0.96) translate(-247.5 -347.5)">
+
+        <!-- Moldura e tela (esmaecem na base) -->
+        <g id="s2-moldura" mask="url(#s2-mascara-aparelho)">
+          <g filter="url(#s2-sombra-aparelho)">
+            <rect x="100" y="347.5" width="295" height="540" rx="46" fill="url(#s2-grad-moldura)" stroke="#bcc3cc" stroke-width="1.2"/>
+          </g>
+          <rect x="98" y="452" width="3" height="30" rx="1.5" fill="#c3c9d1"/>
+          <rect x="98" y="492" width="3" height="30" rx="1.5" fill="#c3c9d1"/>
+          <rect x="394" y="470" width="3" height="52" rx="1.5" fill="#c3c9d1"/>
+          <rect id="s2-tela" x="107.5" y="355" width="280" height="525" rx="39" fill="#ffffff" stroke="#e2e6eb" stroke-width="1"/>
+        </g>
+
+        <!-- Barra de status do sistema -->
+        <g id="s2-barra-status">
+          <text x="140" y="377" font-family="Figtree" font-weight="600" font-size="14.2" fill="#0f1626">9:41</text>
+          <rect x="214" y="367" width="84" height="20" rx="10" fill="#0d0f14"/>
+          <circle cx="287" cy="377" r="3.4" fill="#1d2534"/>
+          <g fill="#11161f">
+            <rect x="321.5" y="382.5" width="2.6" height="4" rx="0.8"/>
+            <rect x="325.5" y="380.5" width="2.6" height="6" rx="0.8"/>
+            <rect x="329.5" y="378.5" width="2.6" height="8" rx="0.8"/>
+            <rect x="333.5" y="376.5" width="2.6" height="10" rx="0.8"/>
+          </g>
+          <g fill="none" stroke="#11161f" stroke-width="1.8" stroke-linecap="round">
+            <path d="M 339.5 380.2 Q 345.3 375 351.1 380.2"/>
+            <path d="M 341.9 382.6 Q 345.3 379.6 348.7 382.6"/>
+          </g>
+          <circle cx="345.3" cy="385.4" r="1.4" fill="#11161f"/>
+          <rect x="355.5" y="379.2" width="15" height="7.8" rx="2.2" fill="none" stroke="#11161f" stroke-width="1.2" stroke-opacity="0.45"/>
+          <rect x="357" y="380.7" width="12" height="4.8" rx="1.2" fill="#11161f"/>
+          <rect x="371.4" y="381.6" width="1.6" height="3" rx="0.8" fill="#11161f" fill-opacity="0.45"/>
+        </g>
+
+        <!-- Cabeçalho -->
+        <g id="s2-cabecalho">
+          <path d="M 149.5 413.5 H 137 M 142.6 407.8 L 137 413.5 L 142.6 419.2" fill="none" stroke="#111a3a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <text x="167" y="422" font-family="Figtree" font-weight="800" font-size="20" letter-spacing="-0.8" fill="#111a3a">Nova aferição</text>
+        </g>
+
+        <!-- Identificação do pneu / veículo -->
+        <g id="s2-identificacao">
+          <rect x="132.5" y="441.5" width="245" height="54.5" rx="12" fill="#edf0f5"/>
+          <g id="s2-icone-pneu" fill="none" stroke="#141c3a" stroke-linecap="round">
+            <ellipse cx="166.5" cy="468.8" rx="15.6" ry="18.6" stroke-width="3"/>
+            <ellipse cx="171.4" cy="468.8" rx="6.6" ry="11.6" stroke-width="2.6"/>
+            <path d="M 159.5 452.8 Q 151.5 468.8 159.5 484.8" stroke-width="2.4"/>
+            <path d="M 153.4 458.5 l 3.6 1.6 M 151.6 464.5 l 3.8 1 M 151.4 470.8 l 3.8 -0.2 M 152.6 477 l 3.6 -1.2 M 155 482.6 l 3.4 -2" stroke-width="1.8"/>
+          </g>
+          <text x="201" y="484" font-family="Poppins" font-weight="700" font-size="25" letter-spacing="-1.2" fill="#121a38">ABC1D23</text>
+        </g>
+
+        <!-- Campos -->
+        <g id="s2-campo-sulco">
+          <rect x="132.5" y="505" width="245" height="60" rx="12" fill="#ffffff" stroke="#e0e5ec" stroke-width="1.2"/>
+          <g id="s2-icone-sulco" fill="none" stroke="#1677e5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M 152 520 l 3.5 3.6 l -3.5 3.6 l 3.5 3.6 l -3.5 3.6 l 3.5 3.6 l -3.5 3.6 l 3.5 3.6 l -3.5 3.6"/>
+            <path d="M 159.5 520 l 3.5 3.6 l -3.5 3.6 l 3.5 3.6 l -3.5 3.6 l 3.5 3.6 l -3.5 3.6 l 3.5 3.6 l -3.5 3.6"/>
+            <path d="M 167 520 l 3.5 3.6 l -3.5 3.6 l 3.5 3.6 l -3.5 3.6 l 3.5 3.6 l -3.5 3.6 l 3.5 3.6 l -3.5 3.6"/>
+            <path d="M 174.5 520 l 3.5 3.6 l -3.5 3.6 l 3.5 3.6 l -3.5 3.6 l 3.5 3.6 l -3.5 3.6 l 3.5 3.6 l -3.5 3.6"/>
+          </g>
+          <text id="s2-campo-sulco-rotulo" x="204" y="529" font-family="Figtree" font-weight="500" font-size="14.5" fill="#3c4558">Sulco:</text>
+          <text id="s2-campo-sulco-valor" x="204" y="551" font-family="Figtree" font-weight="800" font-size="20.5" letter-spacing="-0.4" fill="#121a38">8,2 mm</text>
+          <path d="M 356.5 531 L 362 536.5 L 356.5 542" fill="none" stroke="#8a93a6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </g>
+
+        <g id="s2-campo-pressao">
+          <rect x="132.5" y="573" width="245" height="60" rx="12" fill="#ffffff" stroke="#e0e5ec" stroke-width="1.2"/>
+          <g id="s2-icone-pressao" fill="none" stroke="#1677e5" stroke-linecap="round">
+            <circle cx="165" cy="603" r="14.2" stroke-width="2.6"/>
+            <path d="M 165 592.6 V 595 M 154.6 603 H 157 M 175.4 603 H 173 M 157.6 595.6 l 1.7 1.7 M 172.4 595.6 l -1.7 1.7" stroke-width="2"/>
+            <path d="M 165 603 L 171 597" stroke-width="2.6"/>
+          </g>
+          <circle cx="165" cy="603" r="2.6" fill="#1677e5"/>
+          <text id="s2-campo-pressao-rotulo" x="204" y="597" font-family="Figtree" font-weight="500" font-size="14.5" fill="#3c4558">Pressão:</text>
+          <text id="s2-campo-pressao-valor" x="204" y="619" font-family="Figtree" font-weight="800" font-size="20.5" letter-spacing="-0.4" fill="#121a38">110 psi</text>
+          <path d="M 356.5 599 L 362 604.5 L 356.5 610" fill="none" stroke="#8a93a6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </g>
+
+        <g id="s2-campo-hodometro">
+          <rect x="132.5" y="641" width="245" height="60" rx="12" fill="#ffffff" stroke="#e0e5ec" stroke-width="1.2"/>
+          <g id="s2-icone-hodometro" fill="#1677e5">
+            <path d="M 149.5 688 L 159.6 654 L 163.6 654 L 157.8 688 Z"/>
+            <path d="M 180.5 688 L 170.4 654 L 166.4 654 L 172.2 688 Z"/>
+            <rect x="163.8" y="657" width="2.4" height="7" rx="0.8"/>
+            <rect x="163.8" y="668" width="2.4" height="7.5" rx="0.8"/>
+            <rect x="163.8" y="679.5" width="2.4" height="8.5" rx="0.8"/>
+          </g>
+          <text id="s2-campo-hodometro-rotulo" x="204" y="665" font-family="Figtree" font-weight="500" font-size="14.5" fill="#3c4558">Hodômetro:</text>
+          <text id="s2-campo-hodometro-valor" x="204" y="687" font-family="Figtree" font-weight="800" font-size="20.5" letter-spacing="-0.4" fill="#121a38">84.320 km</text>
+          <path d="M 356.5 667 L 362 672.5 L 356.5 678" fill="none" stroke="#8a93a6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </g>
+
+        <!-- Botão -->
+        <g id="s2-botao-salvar">
+          <rect id="s2-botao-fundo" x="132.5" y="714" width="245.5" height="51" rx="13" fill="url(#s2-grad-botao)" filter="url(#s2-sombra-botao)"/>
+          <text id="s2-botao-texto" x="255.25" y="746" text-anchor="middle" font-family="Figtree" font-weight="700" font-size="19.5" letter-spacing="-0.7" fill="#ffffff">Salvar aferição</text>
+        </g>
+
+        <!-- Anel de destaque do botão (invisível no estado final) -->
+        <rect id="s2-botao-destaque" x="128" y="709.5" width="254.5" height="60" rx="16.5" fill="none" stroke="#3b8cf2" stroke-width="3" opacity="0"/>
+
+        <!-- Confirmação -->
+        <g id="s2-confirmacao">
+          <rect id="s2-confirmacao-fundo" x="132.5" y="768.5" width="245.5" height="45.5" rx="13" fill="#e8f5ea"/>
+          <circle id="s2-confirmacao-circulo" cx="205" cy="795" r="11.5" fill="#2e9a49"/>
+          <path id="s2-confirmacao-check" d="M 199.6 795.4 L 203.4 799.1 L 210.6 791.8" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          <text id="s2-confirmacao-texto" x="226" y="800" font-family="Figtree" font-weight="700" font-size="16.5" letter-spacing="-0.78" fill="#2b8a3e">Aferição salva</text>
+        </g>
+      </g>
+    </g>
+  </g>
 </svg>
