@@ -1,11 +1,83 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Cena 07 — Encerramento · 16.95 s → 20.00 s (frames 1017 → 1200 a 60 fps)
-  Camada transparente sobre o fundo fixo. Placeholder: a arte será criada no próximo lote.
-  Todo o conteúdo (inclusive <defs>) deve ficar DENTRO do grupo abaixo; é ele que o
-  master.js importa para o grupo de mesmo id no documento principal.
-  Nunca inclua aqui a fotografia de fundo nem elementos com id="background-fixed".
+  Cena 07 — Encerramento institucional · 16.95 s → 20.00 s (frames 1017 → 1200 a 60 fps)
+  Referência: assets/referencias/cena-07-referencia.webp
+
+  Camada transparente sobre o fundo fixo, desenhada no estado final da composição
+  (animações em animations/cena-07.js). Todo o conteúdo fica dentro de #scene-07-encerramento.
+  Cada linha de texto é um <text> independente. As duas frases do título são reveladas por
+  máscaras horizontais (#s7-mascara-01 e #s7-mascara-02), que no estado final cobrem tudo.
+  Esta cena termina composta: não há saída nem fade-out até o último frame (20,00 s).
 -->
 <svg xmlns="http://www.w3.org/2000/svg" width="1672" height="941" viewBox="0 0 1672 941">
-  <g id="scene-07-encerramento"></g>
+  <style>@import url("../assets/fonts/fonts.css");</style>
+  <g id="scene-07-encerramento">
+    <defs>
+      <linearGradient id="s7-grad-borda-mascara" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#ffffff"/>
+        <stop offset="1" stop-color="#000000"/>
+      </linearGradient>
+      <!-- Revelação horizontal: o grupo interno desliza da esquerda até x = 0 -->
+      <mask id="s7-mascara-01" maskUnits="userSpaceOnUse" x="0" y="170" width="700" height="185">
+        <g id="s7-mascara-01-cortina">
+          <rect x="0" y="170" width="600" height="185" fill="#ffffff"/>
+          <rect x="600" y="170" width="60" height="185" fill="url(#s7-grad-borda-mascara)"/>
+        </g>
+      </mask>
+      <mask id="s7-mascara-02" maskUnits="userSpaceOnUse" x="0" y="345" width="700" height="160">
+        <g id="s7-mascara-02-cortina">
+          <rect x="0" y="345" width="600" height="160" fill="#ffffff"/>
+          <rect x="600" y="345" width="60" height="160" fill="url(#s7-grad-borda-mascara)"/>
+        </g>
+      </mask>
+      <linearGradient id="s7-grad-detalhe" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#6aa84f"/>
+        <stop offset="1" stop-color="#9cc584"/>
+      </linearGradient>
+      <filter id="s7-sombra-selo" x="-10%" y="-30%" width="120%" height="180%" color-interpolation-filters="sRGB">
+        <feDropShadow dx="0" dy="6" stdDeviation="9" flood-color="#1c3462" flood-opacity="0.12"/>
+      </filter>
+    </defs>
+
+    <!-- Primeira frase -->
+    <g id="titulo-final-01" mask="url(#s7-mascara-01)" font-family="Barlow Condensed" font-weight="700" font-size="85" fill="#0452b7">
+      <text id="s7-titulo-01-linha-1" x="60" y="262" letter-spacing="-0.45">CADA PERDA</text>
+      <text id="s7-titulo-01-linha-2" x="61" y="337" letter-spacing="-0.2">IDENTIFICADA</text>
+      <circle id="s7-titulo-01-ponto" cx="483.5" cy="330" r="6.3" fill="#70ae57"/>
+    </g>
+
+    <!-- Segunda frase -->
+    <g id="titulo-final-02" mask="url(#s7-mascara-02)" font-family="Barlow Condensed" font-weight="700" font-size="85">
+      <text id="s7-titulo-02-linha-1" x="59" y="411" letter-spacing="-1.3" fill="#0592f3">CADA RESULTADO</text>
+      <text id="s7-titulo-02-linha-2" x="59" y="485" letter-spacing="2.3" fill="#0583ee">COMPROVADO</text>
+      <circle id="s7-titulo-02-ponto" cx="489.5" cy="478.5" r="6.3" fill="#70ae57"/>
+    </g>
+
+    <!-- Detalhe gráfico secundário -->
+    <g id="detalhes-final">
+      <rect id="s7-detalhe-linha" x="63" y="517" width="68" height="5" rx="2.5" fill="url(#s7-grad-detalhe)"/>
+    </g>
+
+    <!-- Assinatura -->
+    <g id="assinatura-final" font-family="Montserrat" font-size="23">
+      <text id="s7-assinatura-linha-1" x="62" y="566" font-weight="700" font-size="22.6" fill="#3f4d60">Gestão inteligente de pneus</text>
+      <text id="s7-assinatura-linha-2" x="62" y="595" font-weight="400" fill="#5f6977">para operações que exigem</text>
+      <text id="s7-assinatura-linha-3" x="62" y="621" font-weight="400" fill="#5f6977">resultado.</text>
+    </g>
+
+    <!-- Selo institucional -->
+    <g id="selo-final">
+      <rect id="s7-selo-fundo" x="60" y="659" width="387.5" height="72" rx="36" fill="#ffffff" filter="url(#s7-sombra-selo)"/>
+      <g id="s7-selo-icone" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M 95.50 680.56 L 96.59 676.13 L 102.41 676.13 L 103.50 680.56 L 106.53 681.82 L 110.43 679.45 L 114.55 683.57 L 112.18 687.47 L 113.44 690.50 L 117.87 691.59 L 117.87 697.41 L 113.44 698.50 L 112.18 701.53 L 114.55 705.43 L 110.43 709.55 L 106.53 707.18 L 103.50 708.44 L 102.41 712.87 L 96.59 712.87 L 95.50 708.44 L 92.47 707.18 L 88.57 709.55 L 84.45 705.43 L 86.82 701.53 L 85.56 698.50 L 81.13 697.41 L 81.13 691.59 L 85.56 690.50 L 86.82 687.47 L 84.45 683.57 L 88.57 679.45 L 92.47 681.82 Z" stroke="#1f86e8" stroke-width="3.2"/>
+        <circle cx="99.5" cy="694.5" r="6.2" stroke="#1f86e8" stroke-width="3"/>
+        <path d="M 105.7 694.5 H 117.8" stroke="#6ab04c" stroke-width="2.6"/>
+        <circle cx="122.4" cy="694.5" r="4.4" stroke="#6ab04c" stroke-width="2.6" fill="#ffffff"/>
+      </g>
+      <rect id="s7-selo-divisor" x="148.5" y="677.5" width="1.6" height="34" rx="0.8" fill="#d3d9e2"/>
+      <text id="s7-selo-marca" x="172" y="700" font-family="Montserrat" font-weight="700" font-size="18.6" letter-spacing="-0.2" fill="#1150b8">SygTire</text>
+      <circle id="s7-selo-ponto" cx="253.5" cy="694" r="2.3" fill="#6ab04c"/>
+      <text id="s7-selo-texto" x="265" y="700" font-family="Montserrat" font-weight="400" font-size="18.9" letter-spacing="-0.08" fill="#4a5262">Gestão de pneus</text>
+    </g>
+  </g>
 </svg>

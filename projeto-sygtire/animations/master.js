@@ -12,7 +12,8 @@
  *    nunca invade o quadro da seguinte.
  *  - SCENES é a única fonte de verdade dos intervalos das cenas.
  *
- * Ordem de carregamento: vendor/gsap.min.js → master.js → cena-01.js … cena-07.js → SygTire.init()
+ * Ordem de carregamento: vendor/gsap.min.js → vendor/MotionPathPlugin.min.js → master.js →
+ * cena-01.js … cena-07.js → SygTire.init()
  */
 (function (global) {
   'use strict';
@@ -142,7 +143,7 @@
   /* --------------------------------------------------------------- timeline */
 
   function buildTimeline() {
-    var tl = gsap.timeline({ paused: true, defaults: { ease: 'none' }, onUpdate: emit, onComplete: emit });
+    var tl = gsap.timeline({ paused: true, defaults: { ease: 'none' }, onUpdate: emit, onComplete: onComplete });
 
     SCENES.forEach(function (scene) {
       var slot = scene.end - scene.start;
@@ -250,10 +251,12 @@
     };
   }
 
-  // Cada grupo de cena só aparece dentro do próprio intervalo [start, end).
+  // Cada grupo de cena só aparece dentro do próprio intervalo [start, end). A última cena
+  // continua visível em t = DURATION: o vídeo termina com o encerramento composto.
   function updateSceneVisibility(time) {
-    SCENES.forEach(function (scene) {
-      var visible = time >= scene.start - 1e-6 && time < scene.end - 1e-6;
+    SCENES.forEach(function (scene, i) {
+      var isLast = i === SCENES.length - 1;
+      var visible = time >= scene.start - 1e-6 && (time < scene.end - 1e-6 || (isLast && time <= scene.end + 1e-6));
       document.getElementById(scene.id).style.visibility = visible ? 'visible' : 'hidden';
     });
   }
@@ -267,8 +270,13 @@
     listeners.forEach(function (fn) { fn(state); });
   }
 
-  // Prévia parcial: durante a reprodução, volta a 0 ao atingir `seconds` (null desliga).
-  // Não afeta a renderização quadro a quadro.
+  function onComplete() {
+    if (loopEnd !== null && loopEnd >= DURATION - 1e-6) master.play(0);
+    emit();
+  }
+
+  // Prévia em loop: durante a reprodução, volta a 0 ao atingir `seconds` (até DURATION;
+  // null desliga). Não afeta a renderização quadro a quadro.
   function setPreviewLoop(seconds) {
     loopEnd = seconds === null ? null : clamp(seconds, 1 / FPS, DURATION);
   }
@@ -340,6 +348,7 @@
     render.width = svg.viewBox.baseVal.width;
     render.height = svg.viewBox.baseVal.height;
     gsap.ticker.fps(FPS);
+    if (global.MotionPathPlugin) gsap.registerPlugin(global.MotionPathPlugin);
 
     protectLogos();
     api.ready = waitForBackground()

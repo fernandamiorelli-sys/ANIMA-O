@@ -2,6 +2,7 @@
 
 - Etapa 1: base técnica. Fundo fixo + sete camadas de cena + timeline GSAP.
 - Etapa 2: cenas 01–04 reconstruídas em SVG vetorial e animadas (0 → 11,05 s).
+- Etapa 3: cenas 05–07 reconstruídas e animadas; vídeo completo de 20 s.
 
 ## Fundo original — intocável
 
@@ -25,6 +26,7 @@ referência 2 ele aparece por cima do celular. Como o logo não muda, as composi
 - Cena 01: cards com 98 px de altura e 13 px de intervalo (103 px e 18 px na referência).
 - Cena 02: celular em escala 0,96 com topo em y = 345, esmaecendo antes do logo (y ≈ 799).
 - Cena 03: painel 3 px acima e linhas de alerta com 10 px de intervalo (14 px na referência).
+- Cena 05: painel 4 px acima e cards com 10 px de intervalo (17 e 15 px na referência).
 
 ## Cenas
 
@@ -49,6 +51,14 @@ Os intervalos ficam só em `animations/master.js` (`SCENES`).
   (o posicionamento estático fica em um grupo interno). Ao usar `transformOrigin` num `fromTo`,
   declare-o também no estado inicial: sem isso o *smoothOrigin* do GSAP deixa uma translação residual.
 - Cada grupo de cena só fica visível dentro do próprio intervalo; as saídas terminam no fim dele.
+  Exceção: a cena 07 não tem saída e continua visível em t = 20,00 s (o vídeo termina composto).
+- Ids pedidos no roteiro: cena 05 `#titulo-cpk`, `#painel-cpk`, `#card-cpk`, `#texto-cpk`,
+  `#linha-grafico`, `#ponto-final`, `#card-recapabilidade`, `#barra-recapabilidade`,
+  `#card-sucateamento`, `#barra-sucateamento`; cena 06 `#titulo-integracao`, `#card-sagi`,
+  `#card-isat`, `#card-sygtire`, `#conexao-sagi`, `#conexao-isat`, `#fluxo-sagi`, `#fluxo-isat`;
+  cena 07 `#titulo-final-01`, `#titulo-final-02`, `#assinatura-final`, `#selo-final`, `#detalhes-final`.
+- As marcas SAGI, iSat e SygTire dentro dos cards da cena 06 são reconstruções vetoriais
+  aproximadas; se houver SVGs oficiais das marcas, substitua os grupos `s6-card-*-icone`/`-marca`.
 - Referências: `assets/referencias/cena-XX-referencia.webp`.
 - `svg/fundo.svg` é o SVG principal; `index.html` tem uma cópia inline dele (necessária para o GSAP).
   Mudanças em um devem ir para o outro.
@@ -56,7 +66,8 @@ Os intervalos ficam só em `animations/master.js` (`SCENES`).
 ## Fontes
 
 `assets/fonts/` (SIL Open Font License): **Poppins** 400–900 nos títulos e textos em caixa-alta,
-**Figtree** 400–800 nos textos de interface. O master carrega todas antes de montar a timeline.
+**Figtree** 400–800 nos textos de interface, **Barlow Condensed** 700 no título do encerramento e
+**Montserrat** 400–700 na assinatura e no selo. O master carrega todas antes de montar a timeline.
 
 ## Pré-visualização
 
@@ -65,8 +76,11 @@ npx serve projeto-sygtire        # ou: cd projeto-sygtire && python3 -m http.ser
 ```
 
 Abrir `index.html`. Pelo `file://` a página abre, mas as artes de `svg/cena-XX.svg` só são
-carregadas via HTTP (a página avisa). "Repetir 0–11,05 s" mantém a reprodução nas cenas 01–04.
-Prévia renderizada: `renders/previa-cenas-01-04.webm` (VP9, 1672 × 941, 60 fps, 663 frames). O GSAP 3.13.0 está em `animations/vendor/` (sem dependência de CDN).
+carregadas via HTTP (a página avisa). "Repetir" volta ao início ao chegar a 20 s.
+Prévia renderizada: `renders/previa-completa-20s.webm` (VP9, 1672 × 941, 60 fps, 1200 frames).
+
+O GSAP 3.13.0 e o MotionPathPlugin (pontos de fluxo da cena 06) estão em `animations/vendor/`
+(sem dependência de CDN).
 
 Atalhos: espaço (play/pause), ←/→ (1 frame), Shift + ←/→ (1 s), Home (início), 1–7 (início da cena).
 
