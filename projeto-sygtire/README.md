@@ -1,4 +1,4 @@
-# SygTire — animação institucional (20 s · 60 fps · 1672 × 941)
+# SygTire — animação institucional (30 s · 60 fps · 1672 × 941)
 
 Sete cenas vetoriais (SVG + GSAP) sobre a fotografia original, que fica absolutamente estática.
 
@@ -6,8 +6,9 @@ Sete cenas vetoriais (SVG + GSAP) sobre a fotografia original, que fica absoluta
 
 | Item | Onde |
 |---|---|
-| Vídeo final MP4 (H.264 High 4:4:4, 1672 × 941, 60 fps, 20 s) | `renders/sygtire-20s-1672x941-h264-444.mp4` |
-| Versão de compatibilidade (H.264 High 4:2:0, 1672 × 942) | `renders/sygtire-20s-1672x942-h264-420-compativel.mp4` |
+| Vídeo final MP4 (H.264 High 4:4:4, 1672 × 941, 60 fps, 30 s) | `renders/sygtire_animacao_30s.mp4` |
+| Versão de compatibilidade (H.264 High 4:2:0, 1672 × 942) | `renders/sygtire_animacao_30s_compativel_1672x942.mp4` |
+| Backup da versão de 20 s (vídeos + quadros de referência) | `renders/backup-20s/` (código no commit `3d04155`) |
 | Projeto HTML executável | `index.html` (+ `npm run preview`) |
 | SVGs das sete cenas | `svg/cena-01.svg` … `svg/cena-07.svg` (+ `svg/fundo.svg`, o SVG principal) |
 | Animações das cenas | `animations/cena-01.js` … `animations/cena-07.js` |
@@ -34,7 +35,7 @@ npm run render                   # gera os dois MP4 em renders/ (requer FFmpeg c
 npm run validar                  # gera renders/validacao/ (relatório, screenshots, JSON)
 ```
 
-`npm run render` captura os 1200 frames de `index.html?render` em PNG (sem perdas), com a timeline
+`npm run render` captura os 1800 frames de `index.html?render` em PNG (sem perdas), com a timeline
 pausada e posicionada em `n / 60` s, e os envia direto ao FFmpeg: a fotografia passa por uma única
 compressão. Opções: `--frames renders/frames` (grava também os PNGs), `--crf 10`,
 `--crf-compativel 12`, `--ate N` (teste com os N primeiros frames, saída em `renders/teste/`).
@@ -62,8 +63,9 @@ projeto-sygtire/
 │   ├── render.mjs                captura dos frames + FFmpeg
 │   └── validar.mjs               testes e relatório
 └── renders/
-    ├── sygtire-20s-1672x941-h264-444.mp4
-    ├── sygtire-20s-1672x942-h264-420-compativel.mp4
+    ├── sygtire_animacao_30s.mp4
+    ├── sygtire_animacao_30s_compativel_1672x942.mp4
+    ├── backup-20s/               versão anterior de 20 s + quadros de composição de referência
     └── validacao/
 ```
 
@@ -95,13 +97,20 @@ referência 2 ele aparece por cima do celular. Como o logo não muda, as composi
 
 | Cena | Grupo | Início → fim | Frames (60 fps) |
 |---|---|---|---|
-| 01 | `scene-01-abertura` | 0.00 → 2.55 s | 0 → 153 |
-| 02 | `scene-02-afericao` | 2.55 → 5.90 s | 153 → 354 |
-| 03 | `scene-03-alertas` | 5.90 → 8.90 s | 354 → 534 |
-| 04 | `scene-04-acao` | 8.90 → 11.05 s | 534 → 663 |
-| 05 | `scene-05-cpk` | 11.05 → 14.10 s | 663 → 846 |
-| 06 | `scene-06-integracao` | 14.10 → 16.95 s | 846 → 1017 |
-| 07 | `scene-07-encerramento` | 16.95 → 20.00 s | 1017 → 1200 |
+| 01 | `scene-01-abertura` | 0.00 → 4.00 s | 0 → 240 |
+| 02 | `scene-02-afericao` | 4.00 → 9.00 s | 240 → 540 |
+| 03 | `scene-03-alertas` | 9.00 → 13.50 s | 540 → 810 |
+| 04 | `scene-04-acao` | 13.50 → 17.00 s | 810 → 1020 |
+| 05 | `scene-05-cpk` | 17.00 → 21.50 s | 1020 → 1290 |
+| 06 | `scene-06-integracao` | 21.50 → 25.50 s | 1290 → 1530 |
+| 07 | `scene-07-encerramento` | 25.50 → 30.00 s | 1530 → 1800 |
+
+Os tempos de cada animação ficam no cabeçalho e no código de `animations/cena-XX.js`. Na passagem
+de 20 s para 30 s só mudaram durações, defasagens e posições dos tweens (e o ponto de partida da
+cortina da máscara do encerramento, que agora começa na borda do texto, sem percurso vazio):
+efeitos, propriedades, easings, ordem e arte são os mesmos, e o quadro de composição completa de cada cena é idêntico
+pixel a pixel ao da versão de 20 s (`npm run validar` confere com `renders/backup-20s/composicoes/`).
+A mensagem final fica completa e parada por 2,35 s.
 
 Os intervalos ficam só em `animations/master.js` (`SCENES`).
 
@@ -114,7 +123,7 @@ Os intervalos ficam só em `animations/master.js` (`SCENES`).
   (o posicionamento estático fica em um grupo interno). Ao usar `transformOrigin` num `fromTo`,
   declare-o também no estado inicial: sem isso o *smoothOrigin* do GSAP deixa uma translação residual.
 - Cada grupo de cena só fica visível dentro do próprio intervalo; as saídas terminam no fim dele.
-  Exceção: a cena 07 não tem saída e continua visível em t = 20,00 s (o vídeo termina composto).
+  Exceção: a cena 07 não tem saída e continua visível em t = 30,00 s (o vídeo termina composto).
 - Ids pedidos no roteiro: cena 05 `#titulo-cpk`, `#painel-cpk`, `#card-cpk`, `#texto-cpk`,
   `#linha-grafico`, `#ponto-final`, `#card-recapabilidade`, `#barra-recapabilidade`,
   `#card-sucateamento`, `#barra-sucateamento`; cena 06 `#titulo-integracao`, `#card-sagi`,
@@ -136,7 +145,7 @@ Os intervalos ficam só em `animations/master.js` (`SCENES`).
 
 `npm run preview` (ou qualquer servidor estático na pasta) e abrir `index.html`. Pelo `file://` a
 página abre, mas as artes de `svg/cena-XX.svg` só são carregadas via HTTP (a página avisa).
-"Repetir" volta ao início ao chegar a 20 s. O GSAP 3.13.0 e o MotionPathPlugin (pontos de fluxo da
+"Repetir" volta ao início ao chegar a 30 s. O GSAP 3.13.0 e o MotionPathPlugin (pontos de fluxo da
 cena 06) estão em `animations/vendor/` (sem dependência de CDN).
 
 Atalhos: espaço (play/pause), ←/→ (1 frame), Shift + ←/→ (1 s), Home (início), 1–7 (início da cena).
@@ -148,7 +157,7 @@ timeline em `n / 60` s, confere o fundo (`assertBackgroundIntact`) e espera a pi
 depende do desempenho da máquina.
 
 Três cuidados garantem que o mesmo frame saia idêntico em qualquer ordem de captura (verificado
-em `npm run validar`, que recaptura os 1200 frames em ordem inversa):
+em `npm run validar`, que recaptura os 1800 frames em ordem inversa):
 
 - o Chromium abre com `--disable-partial-raster` (`scripts/navegador.mjs`); sem isso ele reaproveita
   áreas já rasterizadas e, em elementos com sombra ou desfoque, deixa resíduos de quadros anteriores;

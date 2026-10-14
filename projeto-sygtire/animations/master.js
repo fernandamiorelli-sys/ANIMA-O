@@ -1,6 +1,6 @@
 /*!
  * SygTire — animação institucional
- * master.js — timeline principal GSAP (20 s · 60 fps · 1672 × 941)
+ * master.js — timeline principal GSAP (30 s · 60 fps · 1672 × 941)
  *
  * Regras fixas do projeto:
  *  - #background-fixed é a fotografia original. Nunca recebe tween, transformação,
@@ -18,9 +18,9 @@
 (function (global) {
   'use strict';
 
-  var DURATION = 20;
+  var DURATION = 30;
   var FPS = 60;
-  var TOTAL_FRAMES = Math.round(DURATION * FPS); // 1200
+  var TOTAL_FRAMES = Math.round(DURATION * FPS); // 1800
   var BACKGROUND_ID = 'background-fixed';
   var MASTER_SVG_ID = 'sygtire-master';
   var LOGO_CLIP_ID = 'protecao-logos';
@@ -33,13 +33,13 @@
 
   // Intervalos reservados, em segundos. Todos caem em frames inteiros a 60 fps.
   var SCENES = [
-    { number: 1, id: 'scene-01-abertura',     title: 'Abertura',     start: 0.00,  end: 2.55,  art: 'svg/cena-01.svg' },
-    { number: 2, id: 'scene-02-afericao',     title: 'Aferição',     start: 2.55,  end: 5.90,  art: 'svg/cena-02.svg' },
-    { number: 3, id: 'scene-03-alertas',      title: 'Alertas',      start: 5.90,  end: 8.90,  art: 'svg/cena-03.svg' },
-    { number: 4, id: 'scene-04-acao',         title: 'Ação',         start: 8.90,  end: 11.05, art: 'svg/cena-04.svg' },
-    { number: 5, id: 'scene-05-cpk',          title: 'CPK',          start: 11.05, end: 14.10, art: 'svg/cena-05.svg' },
-    { number: 6, id: 'scene-06-integracao',   title: 'Integração',   start: 14.10, end: 16.95, art: 'svg/cena-06.svg' },
-    { number: 7, id: 'scene-07-encerramento', title: 'Encerramento', start: 16.95, end: 20.00, art: 'svg/cena-07.svg' }
+    { number: 1, id: 'scene-01-abertura',     title: 'Abertura',     start: 0.00,  end: 4.00,  art: 'svg/cena-01.svg' },
+    { number: 2, id: 'scene-02-afericao',     title: 'Aferição',     start: 4.00,  end: 9.00,  art: 'svg/cena-02.svg' },
+    { number: 3, id: 'scene-03-alertas',      title: 'Alertas',      start: 9.00,  end: 13.50, art: 'svg/cena-03.svg' },
+    { number: 4, id: 'scene-04-acao',         title: 'Ação',         start: 13.50, end: 17.00, art: 'svg/cena-04.svg' },
+    { number: 5, id: 'scene-05-cpk',          title: 'CPK',          start: 17.00, end: 21.50, art: 'svg/cena-05.svg' },
+    { number: 6, id: 'scene-06-integracao',   title: 'Integração',   start: 21.50, end: 25.50, art: 'svg/cena-06.svg' },
+    { number: 7, id: 'scene-07-encerramento', title: 'Encerramento', start: 25.50, end: 30.00, art: 'svg/cena-07.svg' }
   ];
 
   var registry = {};

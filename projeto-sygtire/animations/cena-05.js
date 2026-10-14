@@ -1,17 +1,17 @@
 /*
  * Cena 05 — Custo por quilômetro
- * Intervalo reservado no master: 11.05 s → 14.10 s (frames 663 → 846 a 60 fps)
+ * Intervalo reservado no master: 17.00 s → 21.50 s (frames 1020 → 1290 a 60 fps)
  * Arte: svg/cena-05.svg → <g id="scene-05-cpk">
  *
- * Tempos locais (0 = 11.05 s no master):
- * 0.00–0.35  título
- * 0.30–0.70  painel (três cards em sequência)
- * 0.70–1.40  linha do gráfico desenhada; a área e os pontos acompanham a linha
- * 1.40–1.65  destaque do ponto verde final e variação -32%
- * 1.65–2.05  barra de recapabilidade preenche; 78% e +18% aparecem
- * 2.05–2.35  barra de sucateamento preenche; 12% e -45% aparecem
- * 2.35–2.70  painel completo
- * 2.70–3.05  saída suave do painel e do título
+ * Tempos locais (0 = 17.00 s no master):
+ * 0.00–0.50  título
+ * 0.40–1.00  painel (três cards em sequência)
+ * 1.00–2.10  linha do gráfico desenhada; a área e os pontos acompanham a linha
+ * 2.10–2.48  destaque do ponto verde final e variação -32%
+ * 2.45–3.05  barra de recapabilidade preenche; 78% e +18% aparecem
+ * 3.05–3.50  barra de sucateamento preenche; 12% e -45% aparecem
+ * 3.50–4.00  painel completo (leitura)
+ * 4.00–4.50  saída suave do painel e do título
  *
  * Os valores exibidos são sempre os da referência: nada é contado nem interpolado.
  * Anime somente elementos dentro de `group`; nunca referencie #background-fixed.
@@ -36,20 +36,21 @@ SygTire.registerScene('scene-05-cpk', function buildScene05(tl, group, scene) {
   var comprimento = linha.getTotalLength();
   var larguraArea = +recorteArea.getAttribute('width');
 
-  // 0.00–0.35 título
+  // 0.00–0.50 título
   tl.fromTo(titulo, { autoAlpha: 0, y: 16 },
-    { autoAlpha: 1, y: 0, duration: 0.26, stagger: 0.03, ease: 'power2.out' }, 0);
+    { autoAlpha: 1, y: 0, duration: 0.38, stagger: 0.04, ease: 'power2.out' }, 0);
 
-  // 0.30–0.70 painel
+  // 0.40–1.00 painel
   tl.fromTo(cards, { autoAlpha: 0, y: 18 },
-    { autoAlpha: 1, y: 0, duration: 0.28, stagger: 0.06, ease: 'power3.out' }, 0.30);
+    { autoAlpha: 1, y: 0, duration: 0.40, stagger: 0.10, ease: 'power3.out' }, 0.40);
 
-  // 0.70–1.40 linha (oculta até começar, para a ponta arredondada não marcar um ponto)
-  tl.fromTo(linha, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.01, ease: 'none' }, 0.70);
+  // 1.00–2.10 linha (oculta até começar, para a ponta arredondada não marcar um ponto)
+  var inicioLinha = 1.00, duracaoLinha = 1.10;
+  tl.fromTo(linha, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.01, ease: 'none' }, inicioLinha);
   tl.fromTo(linha, { strokeDasharray: comprimento + ' ' + (comprimento + 2), strokeDashoffset: comprimento + 1 },
-    { strokeDashoffset: 0, duration: 0.70, ease: 'none' }, 0.70);
+    { strokeDashoffset: 0, duration: duracaoLinha, ease: 'none' }, inicioLinha);
   tl.fromTo(recorteArea, { attr: { width: 0 } },
-    { attr: { width: larguraArea }, duration: 0.70, ease: 'none' }, 0.70);
+    { attr: { width: larguraArea }, duration: duracaoLinha, ease: 'none' }, inicioLinha);
 
   // Cada ponto surge quando a linha passa por ele (posição proporcional ao comprimento).
   var percorrido = 0;
@@ -59,30 +60,30 @@ SygTire.registerScene('scene-05-cpk', function buildScene05(tl, group, scene) {
       percorrido += Math.hypot(b.cx.baseVal.value - a.cx.baseVal.value, b.cy.baseVal.value - a.cy.baseVal.value);
     }
     tl.fromTo(ponto, { scale: 0, transformOrigin: '50% 50%' },
-      { scale: 1, duration: 0.12, ease: 'back.out(2)' }, 0.70 + 0.70 * percorrido / comprimento);
+      { scale: 1, duration: 0.18, ease: 'back.out(2)' }, inicioLinha + duracaoLinha * percorrido / comprimento);
   });
 
-  // 1.40–1.65 ponto final: anel verde surge e um halo se expande uma vez
+  // 2.10–2.48 ponto final: anel verde surge e um halo se expande uma vez
   tl.fromTo(anelFinal, { scale: 0, transformOrigin: '50% 50%' },
-    { scale: 1, duration: 0.15, ease: 'back.out(2.2)' }, 1.40);
-  tl.fromTo(haloFinal, { opacity: 0 }, { opacity: 0.45, duration: 0.03, ease: 'none' }, 1.40);
-  tl.to(haloFinal, { opacity: 0, attr: { r: 17 }, duration: 0.22, ease: 'power1.out' }, 1.43);
+    { scale: 1, duration: 0.22, ease: 'back.out(2.2)' }, 2.10);
+  tl.fromTo(haloFinal, { opacity: 0 }, { opacity: 0.45, duration: 0.04, ease: 'none' }, 2.10);
+  tl.to(haloFinal, { opacity: 0, attr: { r: 17 }, duration: 0.31, ease: 'power1.out' }, 2.14);
   tl.fromTo(variacoes[0], { autoAlpha: 0, x: 8 },
-    { autoAlpha: 1, x: 0, duration: 0.20, ease: 'power2.out' }, 1.45);
+    { autoAlpha: 1, x: 0, duration: 0.30, ease: 'power2.out' }, 2.18);
 
-  // 1.65–2.05 recapabilidade
+  // 2.45–3.05 recapabilidade
   tl.fromTo(barraRecap, { attr: { width: 0 } },
-    { attr: { width: +barraRecap.getAttribute('width') }, duration: 0.40, ease: 'power2.out' }, 1.65);
+    { attr: { width: +barraRecap.getAttribute('width') }, duration: 0.60, ease: 'power2.out' }, 2.45);
   tl.fromTo([valorRecap, variacoes[1]], { autoAlpha: 0 },
-    { autoAlpha: 1, duration: 0.25, ease: 'none' }, 1.75);
+    { autoAlpha: 1, duration: 0.35, ease: 'none' }, 2.60);
 
-  // 2.05–2.35 sucateamento
+  // 3.05–3.50 sucateamento
   tl.fromTo(barraSuc, { attr: { width: 0 } },
-    { attr: { width: +barraSuc.getAttribute('width') }, duration: 0.30, ease: 'power2.out' }, 2.05);
+    { attr: { width: +barraSuc.getAttribute('width') }, duration: 0.45, ease: 'power2.out' }, 3.05);
   tl.fromTo([valorSuc, variacoes[2]], { autoAlpha: 0 },
-    { autoAlpha: 1, duration: 0.22, ease: 'none' }, 2.12);
+    { autoAlpha: 1, duration: 0.32, ease: 'none' }, 3.15);
 
-  // 2.70–3.05 saída
-  tl.to(painel, { autoAlpha: 0, y: -10, duration: 0.25, ease: 'sine.in' }, 2.70);
-  tl.to(titulo, { autoAlpha: 0, y: -10, duration: 0.22, stagger: 0.03, ease: 'sine.inOut' }, 2.74);
+  // 4.00–4.50 saída
+  tl.to(painel, { autoAlpha: 0, y: -10, duration: 0.35, ease: 'sine.in' }, 4.00);
+  tl.to(titulo, { autoAlpha: 0, y: -10, duration: 0.30, stagger: 0.04, ease: 'sine.inOut' }, 4.08);
 });

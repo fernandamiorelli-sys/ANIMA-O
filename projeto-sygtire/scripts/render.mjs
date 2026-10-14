@@ -4,9 +4,9 @@
 // posicionada em n / 60 s (seek determinístico) e envia os PNGs direto ao FFmpeg: a fotografia
 // passa por uma única compressão, a do vídeo final.
 //
-// Saídas em renders/:
-//   sygtire-20s-<L>x<A>-h264-444.mp4             H.264 High 4:4:4, dimensões nativas do fundo
-//   sygtire-20s-<L>x<A+1>-h264-420-compativel.mp4  H.264 High 4:2:0 (só quando a altura é ímpar)
+// Saídas em renders/ (<N> = duração da timeline em segundos):
+//   sygtire_animacao_<N>s.mp4                          H.264 High 4:4:4, dimensões nativas do fundo
+//   sygtire_animacao_<N>s_compativel_<L>x<A+1>.mp4     H.264 High 4:2:0 (só quando a altura é ímpar)
 //
 // H.264 4:2:0 exige largura e altura pares. Com o fundo de 1672 × 941, o arquivo nativo usa 4:4:4;
 // a versão compatível acrescenta uma linha no rodapé repetindo a última linha da imagem
@@ -63,9 +63,9 @@ try {
   await mkdir(pastaSaida, { recursive: true });
   if (pastaFrames) await mkdir(join(RAIZ, pastaFrames), { recursive: true });
 
-  const base = `sygtire-${Math.round(info.duracao)}s`;
+  const base = `sygtire_animacao_${Math.round(info.duracao)}s`;
   const codificadores = [ffmpeg(
-    join(pastaSaida, `${base}-${info.largura}x${info.altura}-h264-444.mp4`),
+    join(pastaSaida, `${base}.mp4`),
     `${ESCALA},format=yuv444p`,
     ['-c:v', 'libx264', '-preset', 'slow', '-crf', crf, '-profile:v', 'high444'],
     info.fps
@@ -73,7 +73,7 @@ try {
   if (info.altura % 2 || info.largura % 2) {
     const L = info.largura + (info.largura % 2), A = info.altura + (info.altura % 2);
     codificadores.push(ffmpeg(
-      join(pastaSaida, `${base}-${L}x${A}-h264-420-compativel.mp4`),
+      join(pastaSaida, `${base}_compativel_${L}x${A}.mp4`),
       `pad=${L}:${A}:0:0,fillborders=right=${L - info.largura}:bottom=${A - info.altura}:mode=smear,${ESCALA},format=yuv420p`,
       ['-c:v', 'libx264', '-preset', 'slow', '-crf', crfCompativel, '-profile:v', 'high', '-level:v', '4.2'],
       info.fps

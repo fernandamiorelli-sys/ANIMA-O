@@ -1,15 +1,15 @@
 /*
  * Cena 03 — Alertas
- * Intervalo reservado no master: 5.90 s → 8.90 s (frames 354 → 534 a 60 fps)
+ * Intervalo reservado no master: 9.00 s → 13.50 s (frames 540 → 810 a 60 fps)
  * Arte: svg/cena-03.svg → <g id="scene-03-alertas">
  *
- * Tempos locais (0 = 5.90 s no master):
- * 0.00–0.35  título
- * 0.25–0.65  painel surge com leve escala
- * 0.65–2.05  quatro alertas, 0.35 s cada
- * 2.05–2.50  painel completo; o indicador CRÍTICA pulsa discretamente
- * 2.50–2.83  alertas saem de baixo para cima
- * 2.78–3.00  painel e título saem
+ * Tempos locais (0 = 9.00 s no master):
+ * 0.00–0.50  título
+ * 0.35–0.95  painel surge com leve escala
+ * 0.95–3.12  quatro alertas, um a cada 0.55 s
+ * 3.12–3.75  painel completo; o indicador CRÍTICA pulsa discretamente
+ * 3.75–4.20  alertas saem de baixo para cima
+ * 4.12–4.50  painel e título saem
  *
  * Anime somente elementos dentro de `group`; nunca referencie #background-fixed.
  */
@@ -21,28 +21,28 @@ SygTire.registerScene('scene-03-alertas', function buildScene03(tl, group, scene
   var alertas = [1, 2, 3, 4].map(function (n) { return $('s3-alerta-' + n); });
   var prioridades = [1, 2, 3, 4].map(function (n) { return $('s3-alerta-' + n + '-prioridade'); });
 
-  // 0.00–0.35 título
+  // 0.00–0.50 título
   tl.fromTo(titulo, { autoAlpha: 0, y: 16 },
-    { autoAlpha: 1, y: 0, duration: 0.29, stagger: 0.03, ease: 'power2.out' }, 0);
+    { autoAlpha: 1, y: 0, duration: 0.40, stagger: 0.05, ease: 'power2.out' }, 0);
 
-  // 0.25–0.65 painel
+  // 0.35–0.95 painel
   tl.fromTo(painel, { autoAlpha: 0, scale: 0.94, transformOrigin: '50% 0%' },
-    { autoAlpha: 1, scale: 1, duration: 0.40, ease: 'power3.out', transformOrigin: '50% 0%' }, 0.25);
+    { autoAlpha: 1, scale: 1, duration: 0.60, ease: 'power3.out', transformOrigin: '50% 0%' }, 0.35);
 
-  // 0.65–2.05 alertas; o indicador de prioridade completa a entrada de cada linha
+  // 0.95–3.12 alertas; o indicador de prioridade completa a entrada de cada linha
   alertas.forEach(function (alerta, i) {
-    var t = 0.65 + i * 0.35;
+    var t = 0.95 + i * 0.55;
     tl.fromTo(alerta, { autoAlpha: 0, y: 14 },
-      { autoAlpha: 1, y: 0, duration: 0.30, ease: 'power3.out' }, t);
+      { autoAlpha: 1, y: 0, duration: 0.45, ease: 'power3.out' }, t);
     tl.fromTo(prioridades[i], { autoAlpha: 0, scale: 0.6, transformOrigin: '50% 50%' },
-      { autoAlpha: 1, scale: 1, duration: 0.20, ease: 'back.out(2)', transformOrigin: '50% 50%' }, t + 0.15);
+      { autoAlpha: 1, scale: 1, duration: 0.30, ease: 'back.out(2)', transformOrigin: '50% 50%' }, t + 0.22);
   });
 
-  // 2.05–2.50 pulso discreto do CRÍTICA (dois ciclos)
-  tl.to(prioridades[0], { scale: 1.07, duration: 0.1125, yoyo: true, repeat: 3, ease: 'sine.inOut', transformOrigin: '50% 50%' }, 2.05);
+  // 3.12–3.72 pulso discreto do CRÍTICA (dois ciclos)
+  tl.to(prioridades[0], { scale: 1.07, duration: 0.15, yoyo: true, repeat: 3, ease: 'sine.inOut', transformOrigin: '50% 50%' }, 3.12);
 
-  // 2.50–3.00 saída: alertas de baixo para cima, depois painel e título
-  tl.to(alertas.slice().reverse(), { autoAlpha: 0, y: -12, duration: 0.18, stagger: 0.05, ease: 'power2.in' }, 2.50);
-  tl.to(painel, { autoAlpha: 0, scale: 0.97, duration: 0.17, ease: 'power2.in', transformOrigin: '50% 0%' }, 2.78);
-  tl.to(titulo, { autoAlpha: 0, y: -10, duration: 0.17, stagger: 0.015, ease: 'sine.inOut' }, 2.80);
+  // 3.75–4.50 saída: alertas de baixo para cima, depois painel e título
+  tl.to(alertas.slice().reverse(), { autoAlpha: 0, y: -12, duration: 0.24, stagger: 0.07, ease: 'power2.in' }, 3.75);
+  tl.to(painel, { autoAlpha: 0, scale: 0.97, duration: 0.24, ease: 'power2.in', transformOrigin: '50% 0%' }, 4.12);
+  tl.to(titulo, { autoAlpha: 0, y: -10, duration: 0.26, stagger: 0.02, ease: 'sine.inOut' }, 4.20);
 });

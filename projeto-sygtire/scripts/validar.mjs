@@ -20,38 +20,43 @@ import { join } from 'node:path';
 import { iniciarServidor, RAIZ } from './servidor.mjs';
 
 const SAIDA = join(RAIZ, 'renders', 'validacao');
-const TEMPOS = [0, 1.5, 3.5, 6.5, 9.8, 12.5, 15.5, 18.5, 19.9];
-const COMPOSICOES = [[1, 1.80], [2, 5.30], [3, 7.95], [4, 10.75], [5, 13.55], [6, 16.55], [7, 19.90]];
+// Tempos de teste (um durante a entrada de cada cena) e quadros de composição completa de cada cena.
+const TEMPOS = [0, 1.2, 5.8, 10.6, 15.0, 18.8, 23.2, 26.5, 29.9];
+const COMPOSICOES = [[1, 2.70], [2, 8.05], [3, 764 / 60], [4, 16.50], [5, 20.75], [6, 25.05], [7, 29.90]];
+// Quadros de composição completa da versão de 20 s: os elementos precisam continuar idênticos.
+const REFERENCIA_ANTERIOR = join(RAIZ, 'renders', 'backup-20s', 'composicoes');
+// A mensagem final precisa ficar completa e parada por pelo menos este tempo.
+const ENCERRAMENTO_MINIMO = 2.3;
 // Área dos logotipos na fotografia (medida em fundo-original.png, sem folga).
 const LOGOS = [{ nome: 'iSat', x: 62, y: 801, w: 111, h: 64 }, { nome: 'SygTire', x: 1440, y: 40, w: 179, h: 82 }];
 
 // Janelas do roteiro (tempos locais da cena). Cada animação encontrada precisa caber na janela.
 const ROTEIRO = {
-  1: [['s1-titulo-linha-1', 'entrada', 0, 0.30], ['s1-titulo-sublinhado', 'entrada', 0, 0.30],
-      ['s1-card-1', 'entrada', 0.30, 0.65], ['s1-card-2', 'entrada', 0.65, 1.00], ['s1-card-3', 'entrada', 1.00, 1.35],
-      ['s1-card-3', 'saida', 2.10, 2.55], ['s1-titulo-linha-1', 'saida', 2.10, 2.55]],
-  2: [['s2-titulo-linha-1', 'entrada', 0, 0.35], ['s2-celular', 'entrada', 0.25, 0.70], ['s2-cabecalho', 'entrada', 0.70, 1.00],
-      ['s2-identificacao', 'entrada', 0.70, 1.00], ['s2-campo-sulco', 'entrada', 1.00, 1.90], ['s2-campo-pressao', 'entrada', 1.00, 1.90],
-      ['s2-campo-hodometro', 'entrada', 1.00, 1.90], ['s2-botao-salvar', 'entrada', 1.90, 2.20], ['s2-botao-salvar', 'pulso', 1.90, 2.20],
-      ['s2-confirmacao', 'entrada', 2.20, 2.55], ['s2-confirmacao-check', 'traco', 2.20, 2.55],
-      ['s2-celular', 'saida', 2.95, 3.35], ['s2-titulo-linha-3', 'saida', 2.95, 3.35]],
-  3: [['s3-titulo-linha-1', 'entrada', 0, 0.35], ['s3-painel', 'entrada', 0.25, 0.65], ['s3-alerta-1', 'entrada', 0.65, 1.00],
-      ['s3-alerta-2', 'entrada', 1.00, 1.35], ['s3-alerta-3', 'entrada', 1.35, 1.70], ['s3-alerta-4', 'entrada', 1.70, 2.05],
-      ['s3-alerta-4-prioridade', 'entrada', 1.70, 2.05], ['s3-alerta-1-prioridade', 'pulso', 2.05, 2.50],
-      ['s3-alerta-4', 'saida', 2.50, 3.00], ['s3-alerta-1', 'saida', 2.50, 3.00], ['s3-painel', 'saida', 2.50, 3.00], ['s3-titulo-linha-1', 'saida', 2.50, 3.00]],
-  4: [['s4-titulo-linha-1', 'entrada', 0, 0.25], ['s4-diagrama', 'entrada', 0.20, 0.55], ['s4-destaque-2E', 'entrada', 0.55, 0.80],
-      ['s4-movimento-linha', 'traco', 0.80, 1.20], ['s4-destaque-3D', 'entrada', 1.20, 1.50], ['s4-confirmacao', 'entrada', 1.20, 1.50],
-      ['s4-historico', 'entrada', 1.50, 1.75], ['s4-diagrama', 'saida', 1.95, 2.15], ['s4-historico', 'saida', 1.95, 2.15]],
-  5: [['s5-titulo-linha-1', 'entrada', 0, 0.35], ['card-cpk', 'entrada', 0.30, 0.70], ['card-sucateamento', 'entrada', 0.30, 0.70],
-      ['linha-grafico', 'traco', 0.70, 1.40], ['s5-ponto-final-anel', 'entrada', 1.40, 1.65], ['rect@barra-recapabilidade', 'barra', 1.65, 2.05],
-      ['rect@barra-sucateamento', 'barra', 2.05, 2.35], ['painel-cpk', 'saida', 2.70, 3.05], ['s5-titulo-linha-1', 'saida', 2.70, 3.05]],
-  6: [['s6-titulo-linha-1', 'entrada', 0, 0.30], ['card-sagi', 'entrada', 0.30, 0.60], ['card-isat', 'entrada', 0.55, 0.85],
-      ['card-sygtire', 'entrada', 0.80, 1.15], ['conexao-sagi', 'traco', 1.15, 1.55], ['conexao-isat', 'traco', 1.15, 1.55],
-      ['fluxo-sagi', 'percurso', 1.55, 2.10], ['fluxo-isat', 'percurso', 1.55, 2.10], ['s6-sincronizacao', 'entrada', 2.10, 2.45],
-      ['card-sygtire', 'pulso', 2.10, 2.45], ['card-sygtire', 'saida', 2.45, 2.85], ['s6-titulo-linha-1', 'saida', 2.45, 2.85]],
-  7: [['s7-mascara-01-cortina', 'mascara', 0, 0.45], ['s7-mascara-02-cortina', 'mascara', 0.45, 0.90],
-      ['s7-assinatura-linha-1', 'entrada', 0.90, 1.35], ['s7-assinatura-linha-3', 'entrada', 0.90, 1.35],
-      ['selo-final', 'entrada', 1.35, 1.70], ['s7-detalhe-linha', 'entrada', 1.70, 2.00]]
+  1: [['s1-titulo-linha-1', 'entrada', 0, 0.55], ['s1-titulo-sublinhado', 'entrada', 0, 0.55],
+      ['s1-card-1', 'entrada', 0.55, 1.05], ['s1-card-2', 'entrada', 1.05, 1.55], ['s1-card-3', 'entrada', 1.55, 2.05],
+      ['s1-card-3', 'saida', 3.35, 4.00], ['s1-titulo-linha-1', 'saida', 3.35, 4.00]],
+  2: [['s2-titulo-linha-1', 'entrada', 0, 0.50], ['s2-celular', 'entrada', 0.35, 1.00], ['s2-cabecalho', 'entrada', 1.00, 1.45],
+      ['s2-identificacao', 'entrada', 1.00, 1.45], ['s2-campo-sulco', 'entrada', 1.45, 2.75], ['s2-campo-pressao', 'entrada', 1.45, 2.75],
+      ['s2-campo-hodometro', 'entrada', 1.45, 2.75], ['s2-botao-salvar', 'entrada', 2.75, 3.20], ['s2-botao-salvar', 'pulso', 2.75, 3.20],
+      ['s2-confirmacao', 'entrada', 3.25, 3.71], ['s2-confirmacao-check', 'traco', 3.25, 3.71],
+      ['s2-celular', 'saida', 4.40, 5.00], ['s2-titulo-linha-3', 'saida', 4.40, 5.00]],
+  3: [['s3-titulo-linha-1', 'entrada', 0, 0.50], ['s3-painel', 'entrada', 0.35, 0.95], ['s3-alerta-1', 'entrada', 0.95, 1.50],
+      ['s3-alerta-2', 'entrada', 1.50, 2.05], ['s3-alerta-3', 'entrada', 2.05, 2.60], ['s3-alerta-4', 'entrada', 2.60, 3.15],
+      ['s3-alerta-4-prioridade', 'entrada', 2.60, 3.15], ['s3-alerta-1-prioridade', 'pulso', 3.12, 3.75],
+      ['s3-alerta-4', 'saida', 3.75, 4.50], ['s3-alerta-1', 'saida', 3.75, 4.50], ['s3-painel', 'saida', 3.75, 4.50], ['s3-titulo-linha-1', 'saida', 3.75, 4.50]],
+  4: [['s4-titulo-linha-1', 'entrada', 0, 0.40], ['s4-diagrama', 'entrada', 0.30, 0.85], ['s4-destaque-2E', 'entrada', 0.85, 1.25],
+      ['s4-movimento-linha', 'traco', 1.25, 1.95], ['s4-destaque-3D', 'entrada', 1.95, 2.40], ['s4-confirmacao', 'entrada', 1.95, 2.40],
+      ['s4-historico', 'entrada', 2.40, 2.75], ['s4-diagrama', 'saida', 3.20, 3.50], ['s4-historico', 'saida', 3.20, 3.50]],
+  5: [['s5-titulo-linha-1', 'entrada', 0, 0.50], ['card-cpk', 'entrada', 0.40, 1.00], ['card-sucateamento', 'entrada', 0.40, 1.00],
+      ['linha-grafico', 'traco', 1.00, 2.10], ['s5-ponto-final-anel', 'entrada', 2.10, 2.48], ['rect@barra-recapabilidade', 'barra', 2.45, 3.05],
+      ['rect@barra-sucateamento', 'barra', 3.05, 3.50], ['painel-cpk', 'saida', 4.00, 4.50], ['s5-titulo-linha-1', 'saida', 4.00, 4.50]],
+  6: [['s6-titulo-linha-1', 'entrada', 0, 0.45], ['card-sagi', 'entrada', 0.40, 0.85], ['card-isat', 'entrada', 0.75, 1.20],
+      ['card-sygtire', 'entrada', 1.10, 1.60], ['conexao-sagi', 'traco', 1.60, 2.20], ['conexao-isat', 'traco', 1.60, 2.20],
+      ['fluxo-sagi', 'percurso', 2.20, 3.05], ['fluxo-isat', 'percurso', 2.20, 3.05], ['s6-sincronizacao', 'entrada', 3.05, 3.55],
+      ['card-sygtire', 'pulso', 3.05, 3.55], ['card-sygtire', 'saida', 3.55, 4.00], ['s6-titulo-linha-1', 'saida', 3.55, 4.00]],
+  7: [['s7-mascara-01-cortina', 'mascara', 0, 0.60], ['s7-mascara-02-cortina', 'mascara', 0.50, 1.10],
+      ['s7-assinatura-linha-1', 'entrada', 1.05, 1.55], ['s7-assinatura-linha-3', 'entrada', 1.05, 1.55],
+      ['selo-final', 'entrada', 1.50, 1.85], ['s7-detalhe-linha', 'entrada', 1.85, 2.15]]
 };
 
 const IDS_PEDIDOS = {
@@ -142,7 +147,8 @@ async function main() {
       const filhos = SygTire.timeline.getChildren(false, false, true);
       return SygTire.SCENES.map((cena, i) => {
         const tl = filhos[i];
-        const tweens = tl.getChildren(true, true, false).map((tw) => {
+        // O master reserva o intervalo de cada cena com um set() vazio em {}: não é animação.
+        const tweens = tl.getChildren(true, true, false).filter((tw) => tw.targets().some((t) => t instanceof Element)).map((tw) => {
           const v = tw.vars;
           const ids = tw.targets().map((t) => t.id || (t.parentNode && t.parentNode.id ? 'rect@' + t.parentNode.id : '?'));
           let tipo = 'outro';
@@ -164,7 +170,12 @@ async function main() {
           return { id, tipo, janela: [a, z], real: [tw.inicio, tw.fim], ok: tw.inicio >= a - 1e-3 && tw.fim <= z + 1e-3 };
         });
         const ultimo = Math.max(...tweens.map((t) => t.fim));
+        const fimEntradas = Math.max(...tweens.filter((t) => ['entrada', 'traco', 'barra', 'percurso', 'mascara'].includes(t.tipo)).map((t) => t.fim));
+        // Saídas de destaques transitórios (anel do botão, halo, pontos de fluxo) acontecem antes da
+        // composição completa; a permanência vai do fim das entradas até a primeira saída depois dele.
+        const inicioSaidas = Math.min(intervalo, ...tweens.filter((t) => t.tipo === 'saida' && t.inicio >= fimEntradas - 1e-6).map((t) => t.inicio));
         return {
+          composicaoCompleta: [+fimEntradas.toFixed(3), +inicioSaidas.toFixed(3)], permanencia: +(inicioSaidas - fimEntradas).toFixed(3),
           cena: cena.number, titulo: cena.title, inicio: cena.start, fim: cena.end, intervalo,
           duracaoTimeline: +tl.duration().toFixed(4), posicaoNoMaster: +tl.startTime().toFixed(4),
           ultimaAnimacao: +ultimo.toFixed(4), cabeNoIntervalo: ultimo <= intervalo + 1e-6,
@@ -229,8 +240,19 @@ async function main() {
       if ((n + 1) % 120 === 0) console.log(`  frames ${n + 1}/${total} · ${((Date.now() - t0) / 1000).toFixed(0)} s`);
     }
     frames.cortesDeCena = inicioCena.map((f) => ({ frame: f, tempo: r2(f / 60), pixelsDeCena: frames.cobertura[f] }));
-    const fimEstatico = Math.round((16.95 + 2.0) * 60);
-    frames.encerramentoParado = { de: fimEstatico, ate: total - 1, imagensDistintas: new Set(Object.entries(frames.hashes).filter(([k]) => +k >= fimEstatico).map(([, h]) => h)).size };
+    const ultimaCena = resultado.tempos[resultado.tempos.length - 1];
+    const fimEstatico = Math.ceil((ultimaCena.inicio + ultimaCena.ultimaAnimacao) * 60 - 1e-6);
+    frames.encerramentoParado = { de: fimEstatico, ate: total - 1, segundos: r2((total - fimEstatico) / 60),
+      imagensDistintas: new Set(Object.entries(frames.hashes).filter(([k]) => +k >= fimEstatico).map(([, h]) => h)).size };
+    // Frames sem nenhum pixel de cena: só são aceitos no início de cada cena, por até CORTE_MAXIMO
+    // frames (0,1 s), o tempo de um corte; fora disso seria um intervalo vazio.
+    const CORTE_MAXIMO = 6;
+    const vazios = frames.cobertura.map((c, i) => (c === 0 ? i : -1)).filter((i) => i >= 0);
+    frames.framesVazios = {
+      total: vazios.length, corteMaximo: CORTE_MAXIMO,
+      porCena: inicioCena.map((f0) => vazios.filter((i) => i >= f0 && i < f0 + CORTE_MAXIMO).length),
+      foraDosCortes: vazios.filter((i) => !inicioCena.some((f0) => i >= f0 && i < f0 + CORTE_MAXIMO))
+    };
 
     // 5. Seek determinístico: todos os frames de novo, em ordem inversa, numa página nova -------------
     const C = await abrir();
@@ -293,6 +315,19 @@ async function main() {
     }
 
     resultado.composicoes = nomesComposicao;
+    resultado.identidade = [];
+    for (const [n] of COMPOSICOES) {
+      const anterior = join(REFERENCIA_ANTERIOR, `cena-0${n}.png`);
+      let ref; try { ref = PNG.sync.read(await readFile(anterior)).data; } catch { continue; }
+      const atual = PNG.sync.read(await readFile(join(SAIDA, nomesComposicao[n]))).data;
+      let dif = 0, max = 0;
+      for (let i = 0; i < atual.length; i += 4) {
+        const d = Math.max(Math.abs(atual[i] - ref[i]), Math.abs(atual[i + 1] - ref[i + 1]), Math.abs(atual[i + 2] - ref[i + 2]));
+        if (d) { dif++; if (d > max) max = d; }
+      }
+      resultado.identidade.push({ cena: n, pixelsDiferentes: dif, diferencaMaxima: max });
+    }
+    resultado.duracaoEsperada = await A.evaluate(() => SygTire.DURATION);
     resultado.aprovado = avaliar(resultado);
     await writeFile(join(SAIDA, 'relatorio.json'), JSON.stringify(resultado, null, 2));
     await writeFile(join(SAIDA, 'index.html'), relatorio(resultado));
@@ -312,9 +347,12 @@ function avaliar(r) {
     ['Ids pedidos no roteiro presentes (cenas 05–07)', r.svg.every((s) => !s.faltando.length)],
     ['Uma única <image> na página: a fotografia, na camada inferior', r.estrutura.imagensNaPagina === 1 && r.estrutura.fundoPrimeiraCamada],
     ['Nenhum tween GSAP no fundo ou no SVG principal; guardião sem problemas', r.estrutura.tweensNoFundo === 0 && !r.estrutura.problemasGuardiao.length],
-    ['Timeline com 20,00 s e cada cena no seu intervalo', Math.abs(r.estrutura.duracao - 20) < 1e-6 && r.tempos.every((t) => t.cabeNoIntervalo && Math.abs(t.duracaoTimeline - t.intervalo) < 1e-6)],
+    [`Timeline com ${r.duracaoEsperada.toFixed(2).replace('.', ',')} s e cada cena no seu intervalo`, Math.abs(r.estrutura.duracao - r.duracaoEsperada) < 1e-6 && r.tempos.every((t) => t.cabeNoIntervalo && Math.abs(t.duracaoTimeline - t.intervalo) < 1e-6)],
     ['Animações dentro das janelas do roteiro', r.tempos.every((t) => t.conferencias.every((c) => c.ok))],
     ['Encerramento sem saída e parado até o último frame', r.tempos[6].saidas === 0 && f.encerramentoParado.imagensDistintas === 1],
+    [`Mensagem final completa e visível por pelo menos ${ENCERRAMENTO_MINIMO.toString().replace('.', ',')} s (${f.encerramentoParado.segundos.toFixed(2).replace('.', ',')} s)`, f.encerramentoParado.segundos >= ENCERRAMENTO_MINIMO - 1e-6],
+    ['Elementos idênticos à versão anterior (composição completa das sete cenas)', r.identidade.length === 7 && r.identidade.every((x) => x.pixelsDiferentes === 0)],
+    [`Sem intervalos vazios (no máximo ${f.framesVazios.corteMaximo} frames sem elementos no início de cada cena)`, f.framesVazios.foraDosCortes.length === 0],
     [`Fotografia intacta em todos os ${f.total} frames onde nenhuma cena pinta`, f.alteracoesFotografia === 0],
     ['Logotipos nunca cobertos nem alterados', f.logosCobertos === 0 && f.logosDiferentes === 0],
     ['Cortes de cena limpos (nenhum pixel de cena no primeiro frame de cada cena)', f.cortesDeCena.every((c) => c.pixelsDeCena === 0)],
@@ -323,7 +361,7 @@ function avaliar(r) {
     ['Sem erros no navegador', !r.errosNoNavegador.length]
   ];
   for (const v of r.videos) {
-    lista.push([`${v.arquivo}: H.264, 60 fps, 1200 frames, 20,00 s`, v.codec === 'h264' && v.fps === '60/1' && v.frames === 1200 && Math.abs(v.duracao - 20) < 0.02]);
+    lista.push([`${v.arquivo}: H.264, 60 fps, ${f.total} frames, ${r.duracaoEsperada.toFixed(2).replace('.', ',')} s`, v.codec === 'h264' && v.fps === '60/1' && v.frames === f.total && Math.abs(v.duracao - r.duracaoEsperada) < 0.02]);
   }
   return lista.map(([item, ok]) => ({ item, ok: !!ok }));
 }
@@ -331,7 +369,7 @@ function avaliar(r) {
 function relatorio(r) {
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const fmt = (v) => (v === null || v === undefined ? '…' : Number(v).toFixed(2).replace('.', ','));
-  const cenaEm = (t) => (t < 2.55 ? 1 : t < 5.9 ? 2 : t < 8.9 ? 3 : t < 11.05 ? 4 : t < 14.1 ? 5 : t < 16.95 ? 6 : 7);
+  const cenaEm = (t) => (r.tempos.find((x) => t < x.fim) || r.tempos[r.tempos.length - 1]).cena;
   const titulos = Object.fromEntries(r.tempos.map((t) => [t.cena, t.titulo]));
   const ok = (b) => `<span class="${b ? 'ok' : 'falha'}">${b ? '✓' : '✗'}</span>`;
   const comparar = (cena, img, legenda) => `
@@ -365,7 +403,7 @@ function relatorio(r) {
   @media (max-width: 760px) { figure.trio { grid-template-columns: 1fr; } }
 </style></head><body><main>
 <h1>Validação final · SygTire</h1>
-<p class="sub">${r.dimensoes.join(' × ')} · 20 s · 60 fps · gerado em ${esc(r.data)} por <code>scripts/validar.mjs</code></p>
+<p class="sub">${r.dimensoes.join(' × ')} · ${fmt(r.duracaoEsperada)} s · 60 fps · gerado em ${esc(r.data)} por <code>scripts/validar.mjs</code></p>
 
 <div class="card"><ul class="checks">${r.aprovado.map((a) => `<li>${ok(a.ok)} ${esc(a.item)}</li>`).join('')}</ul></div>
 
@@ -386,14 +424,16 @@ ${COMPOSICOES.map(([n, t]) => comparar(n, r.composicoes[n], `${fmt(t)} s · cena
 <tr><td>Imagens no documento</td><td>${r.estrutura.imagensNaPagina} (a fotografia, primeira camada: ${r.estrutura.fundoPrimeiraCamada ? 'sim' : 'não'})</td></tr>
 <tr><td>Atributos do fundo</td><td><code>${esc(JSON.stringify(r.estrutura.fundoAtributos))}</code></td></tr>
 <tr><td>Cortes de cena (pixels de cena no 1º frame)</td><td>${r.frames.cortesDeCena.map((c) => `${fmt(c.tempo)} s: ${c.pixelsDeCena}`).join(' · ')}</td></tr>
-<tr><td>Encerramento parado (frames ${r.frames.encerramentoParado.de}–${r.frames.encerramentoParado.ate})</td><td>${r.frames.encerramentoParado.imagensDistintas} imagem distinta</td></tr>
+<tr><td>Encerramento parado (frames ${r.frames.encerramentoParado.de}–${r.frames.encerramentoParado.ate})</td><td>${r.frames.encerramentoParado.imagensDistintas} imagem distinta · ${fmt(r.frames.encerramentoParado.segundos)} s</td></tr>
+<tr><td>Frames sem nenhum elemento de cena, no início de cada cena</td><td>${r.frames.framesVazios.porCena.map((n, i) => `0${i + 1}: ${n}`).join(' · ')} (fora dos cortes: ${r.frames.framesVazios.foraDosCortes.length})</td></tr>
+<tr><td>Composição completa vs versão anterior (pixels diferentes por cena)</td><td>${r.identidade.map((x) => `0${x.cena}: ${x.pixelsDiferentes}`).join(' · ')}</td></tr>
 <tr><td>Seek determinístico (os ${r.frames.determinismo.frames} frames recapturados em ordem inversa, em página nova)</td><td>${r.frames.determinismo.todosIguais ? 'todos idênticos' : 'divergências em ' + r.frames.determinismo.divergentes.length + ' frames'} ${ok(r.frames.determinismo.todosIguais)}</td></tr>
 </table></div>
 
 <h2>Timeline</h2>
 <div class="card"><table>
-<tr><th>Cena</th><th>Intervalo</th><th>Timeline</th><th>Última animação</th><th>Conferências do roteiro</th></tr>
-${r.tempos.map((t) => `<tr><td>0${t.cena} · ${esc(t.titulo)}</td><td>${fmt(t.inicio)}–${fmt(t.fim)} s</td><td>${fmt(t.duracaoTimeline)} s em ${fmt(t.posicaoNoMaster)} s</td><td>${t.ultimaAnimacao.toFixed(3)} s ${ok(t.cabeNoIntervalo)}</td>
+<tr><th>Cena</th><th>Intervalo</th><th>Timeline</th><th>Última animação</th><th>Composição completa (leitura)</th><th>Conferências do roteiro</th></tr>
+${r.tempos.map((t) => `<tr><td>0${t.cena} · ${esc(t.titulo)}</td><td>${fmt(t.inicio)}–${fmt(t.fim)} s</td><td>${fmt(t.duracaoTimeline)} s em ${fmt(t.posicaoNoMaster)} s</td><td>${t.ultimaAnimacao.toFixed(3)} s ${ok(t.cabeNoIntervalo)}</td><td>${fmt(t.composicaoCompleta[0])}–${fmt(t.composicaoCompleta[1])} s · ${fmt(t.permanencia)} s</td>
 <td>${t.conferencias.map((c) => `${ok(c.ok)} <code>${esc(c.id)}</code> ${c.tipo} ${c.real ? `${c.real[0].toFixed(2)}→${c.real[1].toFixed(2)}` : '—'} <span style="color:var(--muted)">(janela ${fmt(c.janela[0])}–${fmt(c.janela[1])})</span>`).join('<br>')}</td></tr>`).join('')}
 </table></div>
 
