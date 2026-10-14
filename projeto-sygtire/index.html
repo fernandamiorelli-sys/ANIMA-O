@@ -47,6 +47,8 @@
     margin: 0 auto;
   }
   .stage svg { display: block; width: 100%; height: 100%; }
+  /* Texto sem hinting: geometria exata das letras em movimento e frames reproduzíveis na captura. */
+  #sygtire-master text { text-rendering: geometricPrecision; }
   .viewport.native .stage { width: 1672px; }
 
   .transport { display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap; }

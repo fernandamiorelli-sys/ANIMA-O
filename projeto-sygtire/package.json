@@ -1,0 +1,16 @@
+{
+  "name": "sygtire-animacao",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Animação institucional SygTire: SVG + GSAP sobre a fotografia original (20 s, 60 fps).",
+  "type": "module",
+  "scripts": {
+    "preview": "node scripts/servidor.mjs 8080",
+    "render": "node scripts/render.mjs",
+    "validar": "node scripts/validar.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.56.1",
+    "pngjs": "7.0.0"
+  }
+}

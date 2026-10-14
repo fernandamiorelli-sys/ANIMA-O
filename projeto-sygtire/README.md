@@ -1,8 +1,71 @@
 # SygTire — animação institucional (20 s · 60 fps · 1672 × 941)
 
-- Etapa 1: base técnica. Fundo fixo + sete camadas de cena + timeline GSAP.
-- Etapa 2: cenas 01–04 reconstruídas em SVG vetorial e animadas (0 → 11,05 s).
-- Etapa 3: cenas 05–07 reconstruídas e animadas; vídeo completo de 20 s.
+Sete cenas vetoriais (SVG + GSAP) sobre a fotografia original, que fica absolutamente estática.
+
+## Entregas
+
+| Item | Onde |
+|---|---|
+| Vídeo final MP4 (H.264 High 4:4:4, 1672 × 941, 60 fps, 20 s) | `renders/sygtire-20s-1672x941-h264-444.mp4` |
+| Versão de compatibilidade (H.264 High 4:2:0, 1672 × 942) | `renders/sygtire-20s-1672x942-h264-420-compativel.mp4` |
+| Projeto HTML executável | `index.html` (+ `npm run preview`) |
+| SVGs das sete cenas | `svg/cena-01.svg` … `svg/cena-07.svg` (+ `svg/fundo.svg`, o SVG principal) |
+| Animações das cenas | `animations/cena-01.js` … `animations/cena-07.js` |
+| Timeline GSAP principal | `animations/master.js` |
+| Screenshots e relatório de validação | `renders/validacao/` (abrir `index.html` pela pré-visualização) |
+
+### Por que dois MP4
+
+H.264 no modo de cor mais comum (4:2:0) só aceita largura e altura pares, e o fundo tem 941 px de
+altura. O vídeo principal usa H.264 High 4:4:4, que aceita as dimensões nativas e ainda preserva a
+cor da fotografia sem subamostragem. Ele abre em players baseados no FFmpeg (VLC, mpv), mas
+QuickTime, navegadores, redes sociais e alguns editores podem não aceitar H.264 4:4:4. Para esses
+casos, a versão compatível usa 4:2:0 com uma linha a mais no rodapé, cópia da última linha da imagem:
+nenhum pixel da fotografia é alterado, só é acrescentado 1 px de altura.
+
+## Comandos
+
+```sh
+cd projeto-sygtire
+npm install                      # Playwright + pngjs (só para renderizar e validar)
+npx playwright install chromium  # navegador usado na captura dos frames
+npm run preview                  # http://127.0.0.1:8080/index.html
+npm run render                   # gera os dois MP4 em renders/ (requer FFmpeg com libx264)
+npm run validar                  # gera renders/validacao/ (relatório, screenshots, JSON)
+```
+
+`npm run render` captura os 1200 frames de `index.html?render` em PNG (sem perdas), com a timeline
+pausada e posicionada em `n / 60` s, e os envia direto ao FFmpeg: a fotografia passa por uma única
+compressão. Opções: `--frames renders/frames` (grava também os PNGs), `--crf 10`,
+`--crf-compativel 12`, `--ate N` (teste com os N primeiros frames, saída em `renders/teste/`).
+
+## Estrutura
+
+```
+projeto-sygtire/
+├── index.html                    pré-visualização e palco de renderização (?render)
+├── package.json
+├── assets/
+│   ├── fundo-original.png        fotografia (camada única, intocável)
+│   ├── fonts/                    Poppins, Figtree, Barlow Condensed, Montserrat (OFL) + fonts.css
+│   └── referencias/              arquivo original recebido + referências das sete cenas
+├── svg/
+│   ├── fundo.svg                 SVG principal (fotografia + sete grupos de cena)
+│   └── cena-01.svg … cena-07.svg
+├── animations/
+│   ├── master.js                 timeline principal, proteção do fundo e dos logos, API de render
+│   ├── cena-01.js … cena-07.js
+│   └── vendor/                   GSAP 3.13.0 + MotionPathPlugin
+├── scripts/
+│   ├── servidor.mjs              servidor estático sem dependências
+│   ├── navegador.mjs             Chromium configurado para captura determinística
+│   ├── render.mjs                captura dos frames + FFmpeg
+│   └── validar.mjs               testes e relatório
+└── renders/
+    ├── sygtire-20s-1672x941-h264-444.mp4
+    ├── sygtire-20s-1672x942-h264-420-compativel.mp4
+    └── validacao/
+```
 
 ## Fundo original — intocável
 
@@ -71,24 +134,27 @@ Os intervalos ficam só em `animations/master.js` (`SCENES`).
 
 ## Pré-visualização
 
-```sh
-npx serve projeto-sygtire        # ou: cd projeto-sygtire && python3 -m http.server
-```
-
-Abrir `index.html`. Pelo `file://` a página abre, mas as artes de `svg/cena-XX.svg` só são
-carregadas via HTTP (a página avisa). "Repetir" volta ao início ao chegar a 20 s.
-Prévia renderizada: `renders/previa-completa-20s.webm` (VP9, 1672 × 941, 60 fps, 1200 frames).
-
-O GSAP 3.13.0 e o MotionPathPlugin (pontos de fluxo da cena 06) estão em `animations/vendor/`
-(sem dependência de CDN).
+`npm run preview` (ou qualquer servidor estático na pasta) e abrir `index.html`. Pelo `file://` a
+página abre, mas as artes de `svg/cena-XX.svg` só são carregadas via HTTP (a página avisa).
+"Repetir" volta ao início ao chegar a 20 s. O GSAP 3.13.0 e o MotionPathPlugin (pontos de fluxo da
+cena 06) estão em `animations/vendor/` (sem dependência de CDN).
 
 Atalhos: espaço (play/pause), ←/→ (1 frame), Shift + ←/→ (1 s), Home (início), 1–7 (início da cena).
 
-## Renderização a 60 fps
+## Renderização determinística
 
-`index.html?render` mostra só o palco, em 1672 × 941 nativos. Para cada frame `n` de 0 a 1199:
-`await SygTire.render.frame(n)` e capturar a tela (ex.: Playwright com `deviceScaleFactor: 1`).
-A timeline fica pausada e é posicionada em `n / 60` s, então a captura não depende do desempenho.
+`index.html?render` mostra só o palco, em 1672 × 941 nativos. `await SygTire.render.frame(n)` pausa a
+timeline em `n / 60` s, confere o fundo (`assertBackgroundIntact`) e espera a pintura; o resultado não
+depende do desempenho da máquina.
 
-Atenção: 941 px de altura é ímpar. MP4 H.264 `yuv420p` (o formato comum para web e redes) exige
-dimensões pares; sequência PNG, ProRes 4444 ou H.264 `yuv444p` aceitam 1672 × 941 sem alterar a imagem.
+Três cuidados garantem que o mesmo frame saia idêntico em qualquer ordem de captura (verificado
+em `npm run validar`, que recaptura os 1200 frames em ordem inversa):
+
+- o Chromium abre com `--disable-partial-raster` (`scripts/navegador.mjs`); sem isso ele reaproveita
+  áreas já rasterizadas e, em elementos com sombra ou desfoque, deixa resíduos de quadros anteriores;
+- `render.frame()` recria o layout das cenas visíveis antes da captura, porque o Blink não recalcula a
+  fonte do texto SVG quando só a escala de um grupo-pai muda;
+- os textos usam `text-rendering: geometricPrecision` (CSS de `index.html`): sem *hinting*, a forma das
+  letras não depende do cache de glifos e não "treme" em movimento.
+
+Qualquer outra ferramenta de captura deve usar `SygTire.render.frame(n)` e a mesma opção do Chromium.

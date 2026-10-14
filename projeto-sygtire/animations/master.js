@@ -322,15 +322,30 @@
   // Captura quadro a quadro: para n de 0 a TOTAL_FRAMES - 1, await SygTire.render.frame(n)
   // e grave a tela em 1672 × 941 (index.html?render). A timeline fica pausada e é
   // posicionada em n / 60 s, então o resultado não depende do desempenho da máquina.
+  // O Blink calcula a fonte do texto SVG a partir da escala acumulada dos grupos-pai e não refaz esse
+  // cálculo quando só a transformação muda; sem reconstruir o layout, um frame capturado dependia
+  // dos frames anteriores. Recriar o layout das cenas visíveis torna cada frame independente.
+  function refreshSceneLayout() {
+    SCENES.forEach(function (scene) {
+      var group = document.getElementById(scene.id);
+      if (group.style.visibility === 'hidden') return;
+      group.style.display = 'none';
+      group.getBoundingClientRect();
+      group.style.display = '';
+    });
+  }
+
   var render = {
     fps: FPS,
     totalFrames: TOTAL_FRAMES,
     width: 0,
     height: 0,
+    relayout: refreshSceneLayout,
     frame: function (n) {
       master.pause();
       master.seek(clamp(n, 0, TOTAL_FRAMES) / FPS, false);
       emit();
+      refreshSceneLayout();
       assertBackgroundIntact(true);
       return new Promise(function (resolve) {
         global.requestAnimationFrame(function () { global.requestAnimationFrame(resolve); });
